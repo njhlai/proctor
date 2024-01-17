@@ -1,0 +1,8 @@
+[workspace]
+members = ["lib/rs"]
+resolver = "2"
+
+[workspace.package]
+authors = ["njhlai <nicholasjhlai@gmail.com>"]
+version = "0.1.0"
+edition = "2021"
