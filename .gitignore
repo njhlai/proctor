@@ -3,6 +3,9 @@
 # bin
 /bin
 
+# configs
+directories.json
+
 # Cargo
 /target
 Cargo.lock

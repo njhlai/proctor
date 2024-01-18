@@ -1,0 +1,8 @@
+[package]
+name = "runner"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+colored = "2.1"
+serde_json = "1.0"

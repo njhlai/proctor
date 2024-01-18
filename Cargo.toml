@@ -1,5 +1,5 @@
 [workspace]
-members = ["lib/rs"]
+members = ["lib/rs", "runner"]
 resolver = "2"
 
 [workspace.package]
