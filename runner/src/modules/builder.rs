@@ -76,7 +76,7 @@ fn clang(project_dir: &str) -> Builder {
         ])
         .args(CLANG_COMPILE_FLAGS);
 
-    let binfile = PathBuf::from(&project_dir).join("bin/test_cpp");
+    let binfile = PathBuf::from(project_dir).join("bin/test_cpp");
     let mut runner = Command::new(&binfile);
     runner
         .env("LD_LIBRARY_PATH", format!("{project_dir}/lib/cpp/build"))
@@ -96,7 +96,7 @@ fn rustc(project_dir: &str) -> Builder {
         ])
         .args(RUSTC_COMPILE_FLAGS);
 
-    let binfile = PathBuf::from(&project_dir).join("bin/test_rs");
+    let binfile = PathBuf::from(project_dir).join("bin/test_rs");
     let mut runner = Command::new(&binfile);
     runner.arg("--show-output").args(RUSTC_COLOR_ARGS);
 
