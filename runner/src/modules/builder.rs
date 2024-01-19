@@ -10,6 +10,7 @@ const RUSTC_COMPILE_FLAGS: &[&str] = &["--color", "always", "--edition", "2021",
 const CLANG_COLOR_ARGS: &[&str] = &["--force-colors", "true"];
 const CLANG_COMPILE_FLAGS: &[&str] = &["-std=c++20", "-Wall", "-fsanitize=address", "-g3", "-O2"];
 
+/// A solution builder, defining the language-specific solution compiler and solution-testing bin runner.
 pub struct Builder {
     lang: String,
     compiler: Command,
@@ -18,6 +19,7 @@ pub struct Builder {
 }
 
 impl Builder {
+    /// Compiles `solution` via [`Builder`]'s `compiler` command.
     pub fn compile(&mut self, solution: &Solution) -> Result<OutputStream, OutputStream> {
         let mut path = solution.path.clone();
         path.push("sol");
@@ -45,6 +47,7 @@ impl Builder {
         }
     }
 
+    /// Runs the compiled solution-testing bin via [`Builder`]'s `runner` command.
     pub fn run(&mut self) -> Result<OutputStream, OutputStream> {
         let output = self.runner.output().expect("Failed to run compiled binary");
         let output_streams = OutputStream::from(&output);
@@ -52,6 +55,7 @@ impl Builder {
         if output.status.success() { Ok(output_streams) } else { Err(output_streams) }
     }
 
+    /// Constructs a [`Builder`] for the language `lang`.
     pub fn new(lang: &str, project_dir: &str) -> Self {
         match lang {
             "cpp" => clang(project_dir),
@@ -61,6 +65,7 @@ impl Builder {
     }
 }
 
+/// [`Builder`] for `C++` solutions, using `clang++`.
 fn clang(project_dir: &str) -> Builder {
     let mut compiler = Command::new("clang++");
     compiler
@@ -81,6 +86,7 @@ fn clang(project_dir: &str) -> Builder {
     Builder { lang: String::from("cpp"), compiler, runner, binfile }
 }
 
+/// [`Builder`] for `Rust` solutions, using `rustc`.
 fn rustc(project_dir: &str) -> Builder {
     let mut compiler = Command::new("rustc");
     compiler
