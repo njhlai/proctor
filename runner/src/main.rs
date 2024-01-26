@@ -17,27 +17,34 @@ fn main() {
 
     print!("Problem {}: Compiling solution... ", solution.prob.blue());
     match builder.compile(&solution) {
-        Ok(os) => {
+        Ok(compile_os) => {
             println!("{}!", "SUCCESS".green().bold());
 
-            if os.stdout().is_empty() {
+            if compile_os.stdout().is_empty() {
                 println!("\nNo compile output\n");
             } else {
-                println!("\n{}:\n{}\n", "COMPILE STDOUT".yellow().bold(), os.stdout());
+                println!("\n{}:\n{}\n", "COMPILE STDOUT".yellow().bold(), compile_os.stdout());
             }
 
             print!("Testing solution to problem {}... ", solution.prob.blue());
             match builder.run() {
                 Ok(run_os) => {
-                    println!("Solution {}!\n\n{}:\n{}", "PASSED".green().bold(), "TEST STDOUT".yellow().bold(), run_os.stdout());
+                    println!(
+                        "Solution {}!\n\n{}:\n{}",
+                        "PASSED".green().bold(),
+                        "TEST RESULT".yellow().bold(),
+                        run_os.stdout_else_stderr(),
+                    );
                 }
                 Err(run_os) => {
                     println!("Solution {}!\n", "FAILED".red().bold());
-                    println!("{}:{}", "TEST STDOUT".yellow().bold(), run_os.stdout());
-                    println!("{}:{}", "TEST STDERR".yellow().bold(), run_os.stderr());
+                    println!("\n{}:\n{}", "TEST STDOUT".yellow().bold(), run_os.stdout());
+                    println!("\n{}:\n{}", "TEST STDERR".yellow().bold(), run_os.stderr());
                 }
             }
         }
-        Err(os) => println!("{}!\n\n{}:\n{}", "FAILED".red().bold(), "COMPILE STDERR".yellow().bold(), os.stderr()),
+        Err(compile_os) => {
+            println!("{}!\n\n{}:\n{}", "FAILED".red().bold(), "COMPILE STDERR".yellow().bold(), compile_os.stderr());
+        }
     }
 }

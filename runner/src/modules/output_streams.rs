@@ -29,4 +29,9 @@ impl OutputStream {
     pub fn stderr(&self) -> &str {
         self.stderr.as_str()
     }
+
+    /// Returns either the non-empty stdout stream, else the stderr stream.
+    pub fn stdout_else_stderr(&self) -> &str {
+        if self.stdout.is_empty() { self.stderr() } else { self.stdout() }
+    }
 }
