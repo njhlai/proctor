@@ -21,13 +21,13 @@ pub struct Builder {
 impl Builder {
     /// Compiles `solution` via [`Builder`]'s `compiler` command.
     pub fn compile(&mut self, solution: &Solution) -> Result<OutputStream, OutputStream> {
-        let mut path = solution.path.clone();
-        path.push("sol");
-        path.set_extension(&self.lang);
+        let mut solfile = solution.path.clone();
+        solfile.push("sol");
+        solfile.set_extension(&self.lang);
 
         let output = self
             .compiler
-            .arg(path.to_str().expect("Can't find file"))
+            .arg(solfile.to_str().expect("Can't find file"))
             .args([
                 "-o",
                 &self
