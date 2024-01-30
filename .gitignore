@@ -11,3 +11,7 @@ Cargo.lock
 # cpp objects
 **/*.o
 **/*.so
+
+# py objects
+**/__pycache__
+**/*.egg-info
