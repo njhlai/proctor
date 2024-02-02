@@ -59,6 +59,7 @@ impl Builder {
     pub fn new(lang: &str, project_dir: &str) -> Self {
         match lang {
             "cpp" => clang(project_dir),
+            "py" => python(project_dir),
             "rs" => rustc(project_dir),
             _ => todo!(),
         }
@@ -84,6 +85,18 @@ fn clang(project_dir: &str) -> Builder {
         .args(CLANG_COLOR_ARGS);
 
     Builder { lang: String::from("cpp"), compiler, runner, binfile }
+}
+
+/// [`Builder`] for `Python` solutions, using (a wrapper around) `py_compile`.
+fn python(project_dir: &str) -> Builder {
+    let mut compiler = Command::new("python");
+    compiler.arg(format!("{project_dir}/runner/wrappers/compile.py"));
+
+    let binfile = PathBuf::from(project_dir).join("bin/test_py");
+    let mut runner = Command::new("python");
+    runner.arg(&binfile).arg("-v");
+
+    Builder { lang: String::from("py"), compiler, runner, binfile }
 }
 
 /// [`Builder`] for `Rust` solutions, using `rustc`.
