@@ -8,7 +8,7 @@ use super::solution::Solution;
 const RUSTC_COLOR_ARGS: &[&str] = &["--color", "always"];
 const RUSTC_COMPILE_FLAGS: &[&str] = &["--color", "always", "--edition", "2021", "--test"];
 const CLANG_COLOR_ARGS: &[&str] = &["--force-colors", "true"];
-const CLANG_COMPILE_FLAGS: &[&str] = &["-std=c++20", "-Wall", "-fsanitize=address", "-g3", "-O2"];
+const CLANG_COMPILE_FLAGS: &[&str] = &["-std=c++20", "-stdlib=libc++", "-Wall", "-fsanitize=address", "-g3", "-O2"];
 
 /// A solution builder, defining the language-specific solution compiler and solution-testing bin runner.
 pub struct Builder {
