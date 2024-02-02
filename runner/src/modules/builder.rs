@@ -66,8 +66,14 @@ impl Builder {
     }
 }
 
+fn binfile(project_dir: &str, lang: &str) -> PathBuf {
+    PathBuf::from(project_dir).join(format!("bin/test_{lang}"))
+}
+
 /// [`Builder`] for `C++` solutions, using `clang++`.
 fn clang(project_dir: &str) -> Builder {
+    let lang = String::from("cpp");
+
     let mut compiler = Command::new("clang++");
     compiler
         .args([
@@ -77,30 +83,34 @@ fn clang(project_dir: &str) -> Builder {
         ])
         .args(CLANG_COMPILE_FLAGS);
 
-    let binfile = PathBuf::from(project_dir).join("bin/test_cpp");
+    let binfile = binfile(project_dir, &lang);
     let mut runner = Command::new(&binfile);
     runner
         .env("LD_LIBRARY_PATH", format!("{project_dir}/lib/cpp/build"))
         .arg("--success")
         .args(CLANG_COLOR_ARGS);
 
-    Builder { lang: String::from("cpp"), compiler, runner, binfile }
+    Builder { lang, compiler, runner, binfile }
 }
 
 /// [`Builder`] for `Python` solutions, using (a wrapper around) `py_compile`.
 fn python(project_dir: &str) -> Builder {
+    let lang = String::from("py");
+
     let mut compiler = Command::new("python");
     compiler.arg(format!("{project_dir}/runner/wrappers/compile.py"));
 
-    let binfile = PathBuf::from(project_dir).join("bin/test_py");
+    let binfile = binfile(project_dir, &lang);
     let mut runner = Command::new("python");
     runner.arg(&binfile).arg("-v");
 
-    Builder { lang: String::from("py"), compiler, runner, binfile }
+    Builder { lang, compiler, runner, binfile }
 }
 
 /// [`Builder`] for `Rust` solutions, using `rustc`.
 fn rustc(project_dir: &str) -> Builder {
+    let lang = String::from("rs");
+
     let mut compiler = Command::new("rustc");
     compiler
         .args([
@@ -109,9 +119,9 @@ fn rustc(project_dir: &str) -> Builder {
         ])
         .args(RUSTC_COMPILE_FLAGS);
 
-    let binfile = PathBuf::from(project_dir).join("bin/test_rs");
+    let binfile = binfile(project_dir, &lang);
     let mut runner = Command::new(&binfile);
     runner.arg("--show-output").args(RUSTC_COLOR_ARGS);
 
-    Builder { lang: String::from("rs"), compiler, runner, binfile }
+    Builder { lang, compiler, runner, binfile }
 }
