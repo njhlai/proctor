@@ -105,7 +105,7 @@ fn rustc(project_dir: &str) -> Builder {
     compiler
         .args([
             "--extern",
-            format!("libproctor={project_dir}/target/debug/libproctor.rlib").as_str(),
+            format!("libproctor={project_dir}/target/release/libproctor.rlib").as_str(),
         ])
         .args(RUSTC_COMPILE_FLAGS);
 
