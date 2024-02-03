@@ -12,10 +12,25 @@ const CLANG_COMPILE_FLAGS: &[&str] = &["-std=c++20", "-stdlib=libc++", "-Wall", 
 pub struct Builder {
     lang: String,
     compiler: Command,
-    pub binfile: PathBuf,
+    binfile: PathBuf,
 }
 
 impl Builder {
+    /// Constructs a [`Builder`] for the language `lang`.
+    pub fn new(lang: &str, project_dir: &str) -> Self {
+        match lang {
+            "cpp" => clang(project_dir),
+            "py" => python(project_dir),
+            "rs" => rustc(project_dir),
+            _ => todo!(),
+        }
+    }
+
+    /// Returns the `PathBuf` to the solution-testing bin file.
+    pub fn binfile(&self) -> PathBuf {
+        self.binfile.clone()
+    }
+
     /// Compiles `solution` via [`Builder`]'s `compiler` command.
     pub fn compile(&mut self, solution: &Solution) -> Result<OutputStream, OutputStream> {
         let solfile = solution.solfile(&self.lang);
@@ -39,16 +54,6 @@ impl Builder {
             let _ = fs::remove_file(&self.binfile);
 
             Err(OutputStream::from(&output))
-        }
-    }
-
-    /// Constructs a [`Builder`] for the language `lang`.
-    pub fn new(lang: &str, project_dir: &str) -> Self {
-        match lang {
-            "cpp" => clang(project_dir),
-            "py" => python(project_dir),
-            "rs" => rustc(project_dir),
-            _ => todo!(),
         }
     }
 }

@@ -13,7 +13,7 @@ pub struct Solution {
 }
 
 impl Solution {
-    /// Returns a [`Solution`] to the problem with id `id` which is in the `sol_dir` directory.
+    /// Constructs a [`Solution`] to the problem with id `id` which is in the `sol_dir` directory.
     pub fn new(id: String, sol_dir: &str) -> Self {
         let prob_dir = PathBuf::from(sol_dir).join(&id);
 

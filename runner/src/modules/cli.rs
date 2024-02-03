@@ -57,9 +57,11 @@ impl Cli {
         match &args.command {
             Commands::Run { problem, lang } => {
                 let project_dir = if let Some(dir) = dir["project_dir"].as_str() { dir } else { "." };
-                let sol_dir = if let Some(dir) = dir["sol_dir"].as_str() { dir } else { "data" };
                 let mut builder = Builder::new(lang, project_dir);
-                let mut solution = Solution::new(format!("{problem:0>4}"), sol_dir);
+                let mut solution = Solution::new(
+                    format!("{problem:0>4}"),
+                    if let Some(dir) = dir["sol_dir"].as_str() { dir } else { "data" },
+                );
 
                 print!("Problem {}: Compiling solution... ", solution.id().blue());
                 match builder.compile(&solution) {
@@ -73,7 +75,7 @@ impl Cli {
                         }
 
                         print!("Testing solution to problem {}... ", solution.id().blue());
-                        match solution.run(&builder.binfile, project_dir) {
+                        match solution.run(&builder.binfile(), project_dir) {
                             Ok(run_os) => {
                                 println!(
                                     "Solution {}!\n\n{}:\n{}",
