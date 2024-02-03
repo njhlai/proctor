@@ -7,6 +7,7 @@ use colored::Colorize;
 use serde_json::Value;
 
 use super::builder::Builder;
+use super::setup;
 use super::solution::Solution;
 
 const LEETCODE_MAX_PROBLEM_ID: i64 = 3023;
@@ -27,6 +28,8 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Setups the dev environment
+    Setup,
     /// Compile and test solution
     Run {
         /// Problem ID
@@ -58,6 +61,22 @@ impl Cli {
         let sol_dir_str = if let Some(dir) = dir["sol_dir"].as_str() { dir } else { "data" };
 
         match &args.command {
+            Commands::Setup => {
+                if let Err(err) = setup::setup(project_dir_str, sol_dir_str) {
+                    println!(
+                        "{} to set up dev environment at solution root {}:\n\n{}:\n{err}",
+                        "Failed".red().bold(),
+                        sol_dir_str.yellow().bold(),
+                        "ERR".yellow().bold()
+                    );
+                } else {
+                    println!(
+                        "{} set up dev environment at solution root {}",
+                        "Successfully".green().bold(),
+                        sol_dir_str.yellow().bold()
+                    );
+                }
+            }
             Commands::Run { problem, lang } => {
                 let mut builder = Builder::new(lang, project_dir_str);
                 let mut solution = Solution::new(format!("{problem:0>4}"), sol_dir_str);
