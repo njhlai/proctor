@@ -5,25 +5,20 @@ use std::process::Command;
 use super::output_streams::OutputStream;
 use super::solution::Solution;
 
-const RUSTC_COLOR_ARGS: &[&str] = &["--color", "always"];
 const RUSTC_COMPILE_FLAGS: &[&str] = &["--color", "always", "--edition", "2021", "--test"];
-const CLANG_COLOR_ARGS: &[&str] = &["--force-colors", "true"];
 const CLANG_COMPILE_FLAGS: &[&str] = &["-std=c++20", "-stdlib=libc++", "-Wall", "-fsanitize=address", "-g3", "-O2"];
 
 /// A solution builder, defining the language-specific solution compiler and solution-testing bin runner.
 pub struct Builder {
     lang: String,
     compiler: Command,
-    runner: Command,
-    binfile: PathBuf,
+    pub binfile: PathBuf,
 }
 
 impl Builder {
     /// Compiles `solution` via [`Builder`]'s `compiler` command.
     pub fn compile(&mut self, solution: &Solution) -> Result<OutputStream, OutputStream> {
-        let mut solfile = solution.path.clone();
-        solfile.push("sol");
-        solfile.set_extension(&self.lang);
+        let solfile = solution.solfile(&self.lang);
 
         let output = self
             .compiler
@@ -36,7 +31,7 @@ impl Builder {
                     .ok_or_else(|| OutputStream::error("Can't parse bin filename"))?,
             ])
             .output()
-            .unwrap_or_else(|_| panic!("Failed to compile solution {}", solution.prob));
+            .unwrap_or_else(|_| panic!("Failed to compile solution to problem {}", solution.id()));
 
         if output.status.success() {
             Ok(OutputStream::from(&output))
@@ -45,14 +40,6 @@ impl Builder {
 
             Err(OutputStream::from(&output))
         }
-    }
-
-    /// Runs the compiled solution-testing bin via [`Builder`]'s `runner` command.
-    pub fn run(&mut self) -> Result<OutputStream, OutputStream> {
-        let output = self.runner.output().expect("Failed to run compiled binary");
-        let output_streams = OutputStream::from(&output);
-
-        if output.status.success() { Ok(output_streams) } else { Err(output_streams) }
     }
 
     /// Constructs a [`Builder`] for the language `lang`.
@@ -66,6 +53,7 @@ impl Builder {
     }
 }
 
+/// Returns the `PathBuf` to the testing bin file.
 fn binfile(project_dir: &str, lang: &str) -> PathBuf {
     PathBuf::from(project_dir).join(format!("bin/test_{lang}"))
 }
@@ -84,13 +72,8 @@ fn clang(project_dir: &str) -> Builder {
         .args(CLANG_COMPILE_FLAGS);
 
     let binfile = binfile(project_dir, &lang);
-    let mut runner = Command::new(&binfile);
-    runner
-        .env("LD_LIBRARY_PATH", format!("{project_dir}/lib/cpp/build"))
-        .arg("--success")
-        .args(CLANG_COLOR_ARGS);
 
-    Builder { lang, compiler, runner, binfile }
+    Builder { lang, compiler, binfile }
 }
 
 /// [`Builder`] for `Python` solutions, using (a wrapper around) `py_compile`.
@@ -101,10 +84,8 @@ fn python(project_dir: &str) -> Builder {
     compiler.arg(format!("{project_dir}/runner/wrappers/compile.py"));
 
     let binfile = binfile(project_dir, &lang);
-    let mut runner = Command::new("python");
-    runner.arg(&binfile).arg("-v");
 
-    Builder { lang, compiler, runner, binfile }
+    Builder { lang, compiler, binfile }
 }
 
 /// [`Builder`] for `Rust` solutions, using `rustc`.
@@ -120,8 +101,6 @@ fn rustc(project_dir: &str) -> Builder {
         .args(RUSTC_COMPILE_FLAGS);
 
     let binfile = binfile(project_dir, &lang);
-    let mut runner = Command::new(&binfile);
-    runner.arg("--show-output").args(RUSTC_COLOR_ARGS);
 
-    Builder { lang, compiler, runner, binfile }
+    Builder { lang, compiler, binfile }
 }
