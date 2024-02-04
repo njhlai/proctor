@@ -7,7 +7,7 @@ use colored::Colorize;
 use serde_json::Value;
 
 use super::builder::Builder;
-use super::setup;
+use super::dev_env;
 use super::solution::Solution;
 
 const LEETCODE_MAX_PROBLEM_ID: i64 = 3023;
@@ -62,16 +62,18 @@ impl Cli {
 
         match &args.command {
             Commands::Setup => {
-                if let Err(err) = setup::setup(project_dir_str, sol_dir_str) {
+                println!("Setting up dev environment at solution root {}\n", sol_dir_str.yellow().bold());
+
+                if let Err(err) = dev_env::setup(project_dir_str, sol_dir_str) {
                     println!(
-                        "{} to set up dev environment at solution root {}:\n\n{}:\n{err}",
+                        "\n{} to set up dev environment at solution root {}:\n\n{}:\n{err}",
                         "Failed".red().bold(),
                         sol_dir_str.yellow().bold(),
                         "ERR".yellow().bold()
                     );
                 } else {
                     println!(
-                        "{} set up dev environment at solution root {}",
+                        "\n{} set up dev environment at solution root {}",
                         "Successfully".green().bold(),
                         sol_dir_str.yellow().bold()
                     );
