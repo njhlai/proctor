@@ -1,12 +1,8 @@
-use std::error::Error;
-use std::fs::File;
-use std::io::BufReader;
-
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use serde_json::Value;
 
 use super::builder::Builder;
+use super::config::Config;
 use super::dev_env;
 use super::solution::Solution;
 
@@ -18,9 +14,9 @@ const LEETCODE_MAX_PROBLEM_ID: i64 = 3023;
 #[command(bin_name = "proctor")]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Read from the specified `directories.json` file
+    /// Read config from the specified config JSON file
     #[arg(short, long, value_name = "FILE")]
-    dir_json: Option<String>,
+    config: Option<String>,
 
     #[command(subcommand)]
     command: Commands,
@@ -41,24 +37,12 @@ enum Commands {
 }
 
 impl Cli {
-    /// Returns the project and solution directories from `dir_json` (default: "./directories.json") if possible.
-    fn get_dir(&self) -> Result<Value, Box<dyn Error>> {
-        Ok(serde_json::from_reader(BufReader::new(File::open(
-            if let Some(dir_json_path) = self.dir_json.as_deref() {
-                dir_json_path
-            } else {
-                "directories.json"
-            },
-        )?))?)
-    }
-
     /// Runs the `proctor` CLI app.
     pub fn run() {
         let args = Self::parse();
 
-        let dir = args.get_dir().unwrap();
-        let project_dir_str = if let Some(dir) = dir["project_dir"].as_str() { dir } else { "." };
-        let sol_dir_str = if let Some(dir) = dir["sol_dir"].as_str() { dir } else { "data" };
+        let config = Config::read(&args.config).unwrap_or(Config::new(String::from("."), String::from("./data")));
+        let (project_dir_str, sol_dir_str) = config.get_dirs();
 
         match &args.command {
             Commands::Setup => {

@@ -1,5 +1,6 @@
-pub mod builder;
+mod builder;
 pub mod cli;
-pub mod dev_env;
-pub mod output_streams;
-pub mod solution;
+mod config;
+mod dev_env;
+mod output_streams;
+mod solution;
