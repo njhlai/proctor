@@ -1,9 +1,11 @@
+mod lsp;
 mod setup;
 
 use std::io;
 use std::path::{Path, PathBuf};
 
-use self::setup::{Setup, Pyright, RustAnalyzer};
+use self::lsp::{Pyright, RustAnalyzer};
+use self::setup::Setup;
 
 pub fn setup(project_dir_str: &str, sol_dir_str: &str) -> io::Result<()> {
     let sol_dir = PathBuf::from(sol_dir_str);
