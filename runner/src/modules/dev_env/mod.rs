@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use self::lsp::{Pyright, RustAnalyzer};
 use self::setup::Setup;
 
+/// Sets up the dev environment inside the directory `sol_dir_str`.
 pub fn setup(project_dir_str: &str, sol_dir_str: &str) -> io::Result<()> {
     let sol_dir = PathBuf::from(sol_dir_str);
     let project_dir = Path::new(project_dir_str);

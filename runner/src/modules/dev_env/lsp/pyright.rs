@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-/// `pyright` config JSON serializer
+/// `pyright` config JSON serializer.
 #[derive(Serialize)]
 pub struct Pyright {
     #[serde(rename = "venvPath")]

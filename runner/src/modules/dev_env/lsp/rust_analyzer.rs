@@ -4,14 +4,14 @@ use std::{fs, io};
 
 use serde::Serialize;
 
-/// `rust-analyzer` config JSON serializer
+/// `rust-analyzer` config JSON serializer.
 #[derive(Serialize)]
 pub struct RustAnalyzer {
     sysroot_src: String,
     crates: Vec<Crate>,
 }
 
-/// A `crate` in `rust-analyzer`
+/// A `crate` in `rust-analyzer`.
 #[derive(Serialize)]
 struct Crate {
     root_module: String,
@@ -20,7 +20,7 @@ struct Crate {
     cfg: Vec<String>,
 }
 
-/// `dep` component of a `crate`
+/// `dep` component of a `crate`.
 #[derive(Serialize)]
 struct Dep {
     #[serde(rename = "crate")]

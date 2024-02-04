@@ -1,19 +1,22 @@
 use std::path::PathBuf;
 use std::{fs, io};
 
+/// A structure defining language-specific dev environment setups.
 pub struct Setup {
     lang: String,
     sol_dir: PathBuf,
-    file_to_content: Vec<(PathBuf, String)>,
+    configs: Vec<(PathBuf, String)>,
 }
 
 impl Setup {
+    /// Returns a [`Setup`] for the language `lang` inside `sol_dir`.
     pub fn from(lang: String, sol_dir: PathBuf, file_to_content: Vec<(PathBuf, String)>) -> Self {
-        Setup { lang, sol_dir, file_to_content }
+        Setup { lang, sol_dir, configs: file_to_content }
     }
 
+    /// Write configurations defined by [`Setup`]'s `file_to_content` to disk.
     pub fn write(&self, overwrite: bool) -> io::Result<()> {
-        for (file, content) in &self.file_to_content {
+        for (file, content) in &self.configs {
             let filepath = self.sol_dir.join(file);
 
             if filepath.exists() && !overwrite {

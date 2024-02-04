@@ -30,7 +30,7 @@ pub struct Cli {
 enum Commands {
     /// Setups the dev environment
     Setup,
-    /// Compile and test solution
+    /// Compile and test solution to <PROBLEM>
     Run {
         /// Problem ID
         #[arg(value_parser = clap::value_parser!(u16).range(1..=LEETCODE_MAX_PROBLEM_ID))]
