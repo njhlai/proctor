@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 use std::{fs, io};
 
+use colored::Colorize;
+
 /// A structure defining language-specific dev environment setups.
 pub struct Setup {
     lang: String,
@@ -21,17 +23,17 @@ impl Setup {
 
             if filepath.exists() && !overwrite {
                 println!(
-                    "`{}` for {} dev environment at solution root {} exists, skipping",
-                    file.display(),
-                    self.lang,
-                    self.sol_dir.display(),
+                    "{} for {} dev environment at solution root {} exists, skipping",
+                    file.display().to_string().yellow().bold(),
+                    self.lang.cyan().bold(),
+                    self.sol_dir.display().to_string().yellow().bold(),
                 );
             } else {
                 println!(
-                    "Generating `{}` for {} dev environment at solution root {}",
-                    file.display(),
-                    self.lang,
-                    self.sol_dir.display(),
+                    "Generating {} for {} dev environment at solution root {}",
+                    file.display().to_string().yellow().bold(),
+                    self.lang.cyan().bold(),
+                    self.sol_dir.display().to_string().yellow().bold(),
                 );
                 fs::write(filepath, content)?;
             }

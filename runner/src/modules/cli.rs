@@ -38,15 +38,17 @@ enum Commands {
 
 impl Cli {
     /// Runs the `proctor` CLI app.
-    pub fn run() {
-        let args = Self::parse();
-        let config = if let Ok(config) = Config::read(&args.config) {
+    pub fn run(&self) {
+        let config = if let Ok(config) = Config::read(&self.config) {
             config
         } else {
+            println!("Can't read {}, proceeding with default configuration", "config.json".yellow().bold());
             Config::new(String::from("."), String::from("./data"))
         };
 
-        match &args.command {
+        println!();
+
+        match &self.command {
             Commands::Setup => {
                 println!("Setting up dev environment at solution root {}\n", config.sol_dir_str.yellow().bold());
 
