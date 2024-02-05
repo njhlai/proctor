@@ -1,6 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
+use super::config::Config;
 use super::output_streams::OutputStream;
 
 const RUSTC_COLOR_ARGS: &[&str] = &["--color", "always"];
@@ -13,11 +14,9 @@ pub struct Solution {
 }
 
 impl Solution {
-    /// Constructs a [`Solution`] to the problem with id `id` which is in the `sol_dir` directory.
-    pub fn new(id: String, sol_dir_str: &str) -> Self {
-        let prob_dir = PathBuf::from(sol_dir_str).join(&id);
-
-        Solution { id, prob_dir }
+    /// Constructs a [`Solution`] to the problem `id`.
+    pub fn new(id: &str, config: &Config) -> Self {
+        Solution { id: String::from(id), prob_dir: PathBuf::from(&config.sol_dir_str).join(id) }
     }
 
     /// Returns the problem ID of the [`Solution`].
@@ -34,18 +33,17 @@ impl Solution {
     }
 
     /// Runs the compiled solution-testing bin via [`Solution`]'s `runner` command.
-    pub fn run(&mut self, binfile: &Path, project_dir_str: &str) -> Result<OutputStream, OutputStream> {
-        let lang = binfile.file_name().map(|e| e.to_str().unwrap_or(""));
+    pub fn run(&mut self, lang: &str, config: &Config) -> Result<OutputStream, OutputStream> {
+        let binfile = config.binfile(lang);
 
-        let mut runner = if let Some("test_py") = lang { Command::new("python") } else { Command::new(binfile) };
+        let mut runner = if lang == "py" { Command::new("python") } else { Command::new(&binfile) };
         let output = match lang {
-            None => panic!(),
-            Some("test_cpp") => runner
-                .env("LD_LIBRARY_PATH", format!("{project_dir_str}/lib/cpp/build"))
+            "cpp" => runner
+                .env("LD_LIBRARY_PATH", format!("{}/lib/cpp/build", config.project_dir_str))
                 .arg("--success")
                 .args(CLANG_COLOR_ARGS),
-            Some("test_py") => runner.arg(binfile).arg("-v"),
-            Some("test_rs") => runner.arg("--show-output").args(RUSTC_COLOR_ARGS),
+            "py" => runner.arg(&binfile).arg("-v"),
+            "rs" => runner.arg("--show-output").args(RUSTC_COLOR_ARGS),
             _ => todo!(),
         }
         .output()

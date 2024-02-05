@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
 
+use super::config::Config;
 use super::output_streams::OutputStream;
 use super::solution::Solution;
 
@@ -17,18 +18,13 @@ pub struct Builder {
 
 impl Builder {
     /// Constructs a [`Builder`] for the language `lang`.
-    pub fn new(lang: &str, project_dir_str: &str) -> Self {
+    pub fn new(lang: &str, config: &Config) -> Self {
         match lang {
-            "cpp" => clang(project_dir_str),
-            "py" => python(project_dir_str),
-            "rs" => rustc(project_dir_str),
+            "cpp" => clang(config),
+            "py" => python(config),
+            "rs" => rustc(config),
             _ => todo!(),
         }
-    }
-
-    /// Returns the `PathBuf` to the solution-testing bin file.
-    pub fn binfile(&self) -> PathBuf {
-        self.binfile.clone()
     }
 
     /// Compiles `solution` via [`Builder`]'s `compiler` command.
@@ -58,54 +54,49 @@ impl Builder {
     }
 }
 
-/// Returns the `PathBuf` to the testing bin file.
-fn binfile(project_dir_str: &str, lang: &str) -> PathBuf {
-    PathBuf::from(project_dir_str).join(format!("bin/test_{lang}"))
-}
-
 /// [`Builder`] for `C++` solutions, using `clang++`.
-fn clang(project_dir_str: &str) -> Builder {
+fn clang(config: &Config) -> Builder {
     let lang = String::from("cpp");
 
     let mut compiler = Command::new("clang++");
     compiler
         .args([
-            format!("-I{project_dir_str}/lib/cpp/src").as_str(),
-            format!("-L{project_dir_str}/lib/cpp/build").as_str(),
+            format!("-I{}/lib/cpp/src", config.project_dir_str).as_str(),
+            format!("-L{}/lib/cpp/build", config.project_dir_str).as_str(),
             "-lproctor",
         ])
         .args(CLANG_COMPILE_FLAGS);
 
-    let binfile = binfile(project_dir_str, &lang);
+    let binfile = config.binfile(&lang);
 
     Builder { lang, compiler, binfile }
 }
 
 /// [`Builder`] for `Python` solutions, using (a wrapper around) `py_compile`.
-fn python(project_dir_str: &str) -> Builder {
+fn python(config: &Config) -> Builder {
     let lang = String::from("py");
 
     let mut compiler = Command::new("python");
-    compiler.arg(format!("{project_dir_str}/runner/wrappers/compile.py"));
+    compiler.arg(format!("{}/runner/wrappers/compile.py", config.project_dir_str));
 
-    let binfile = binfile(project_dir_str, &lang);
+    let binfile = config.binfile(&lang);
 
     Builder { lang, compiler, binfile }
 }
 
 /// [`Builder`] for `Rust` solutions, using `rustc`.
-fn rustc(project_dir_str: &str) -> Builder {
+fn rustc(config: &Config) -> Builder {
     let lang = String::from("rs");
 
     let mut compiler = Command::new("rustc");
     compiler
         .args([
             "--extern",
-            format!("libproctor={project_dir_str}/target/release/libproctor.rlib").as_str(),
+            format!("libproctor={}/target/release/libproctor.rlib", config.project_dir_str).as_str(),
         ])
         .args(RUSTC_COMPILE_FLAGS);
 
-    let binfile = binfile(project_dir_str, &lang);
+    let binfile = config.binfile(&lang);
 
     Builder { lang, compiler, binfile }
 }

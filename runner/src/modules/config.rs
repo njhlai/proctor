@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
+use std::path::PathBuf;
 
 use serde::Deserialize;
 
@@ -8,9 +9,9 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 pub struct Config {
     #[serde(rename = "project_dir")]
-    project_dir_str: String,
+    pub project_dir_str: String,
     #[serde(rename = "sol_dir")]
-    sol_dir_str: String,
+    pub sol_dir_str: String,
 }
 
 impl Config {
@@ -28,8 +29,8 @@ impl Config {
         Config { project_dir_str, sol_dir_str }
     }
 
-    /// Get the project and solution directories paths.
-    pub fn get_dirs(&self) -> (&str, &str) {
-        (self.project_dir_str.as_str(), self.sol_dir_str.as_str())
+    /// Returns the `PathBuf` to the testing bin file for language `lang`.
+    pub fn binfile(&self, lang: &str) -> PathBuf {
+        PathBuf::from(&self.project_dir_str).join(format!("bin/test_{lang}"))
     }
 }

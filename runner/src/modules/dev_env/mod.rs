@@ -4,18 +4,22 @@ mod setup;
 use std::io;
 use std::path::{Path, PathBuf};
 
+use super::config::Config;
+
 use self::lsp::{Pyright, RustAnalyzer};
 use self::setup::Setup;
 
-/// Sets up the dev environment inside the directory `sol_dir_str`.
-pub fn setup(project_dir_str: &str, sol_dir_str: &str) -> io::Result<()> {
-    let sol_dir = PathBuf::from(sol_dir_str);
-    let project_dir = Path::new(project_dir_str);
+/// Sets up the dev environment.
+pub fn setup(config: &Config) -> io::Result<()> {
+    let (sol_dir, project_dir) = (PathBuf::from(&config.sol_dir_str), Path::new(&config.project_dir_str));
 
     let cpp_setup = Setup::from(
         String::from("C++"),
         sol_dir.clone(),
-        vec![(PathBuf::from(".clangd"), format!("CompileFlags:\n  Add: -I{project_dir_str}/lib/cpp/src/\n"))],
+        vec![(
+            PathBuf::from(".clangd"),
+            format!("CompileFlags:\n  Add: -I{}/lib/cpp/src/\n", config.project_dir_str),
+        )],
     );
     cpp_setup.write(false)?;
 
@@ -33,7 +37,7 @@ pub fn setup(project_dir_str: &str, sol_dir_str: &str) -> io::Result<()> {
     let mut rust_analyzer = RustAnalyzer::new(project_dir);
     rust_analyzer
         .parse_directory_as_crates(sol_dir.as_path())
-        .unwrap_or_else(|_| panic!("Couldn't parse directory structure of solution root {sol_dir_str}"));
+        .unwrap_or_else(|_| panic!("Couldn't parse directory structure of solution root {}", config.sol_dir_str));
 
     let rust_setup = Setup::from(
         String::from("Rust"),

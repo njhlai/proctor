@@ -40,32 +40,34 @@ impl Cli {
     /// Runs the `proctor` CLI app.
     pub fn run() {
         let args = Self::parse();
-
-        let config = Config::read(&args.config).unwrap_or(Config::new(String::from("."), String::from("./data")));
-        let (project_dir_str, sol_dir_str) = config.get_dirs();
+        let config = if let Ok(config) = Config::read(&args.config) {
+            config
+        } else {
+            Config::new(String::from("."), String::from("./data"))
+        };
 
         match &args.command {
             Commands::Setup => {
-                println!("Setting up dev environment at solution root {}\n", sol_dir_str.yellow().bold());
+                println!("Setting up dev environment at solution root {}\n", config.sol_dir_str.yellow().bold());
 
-                if let Err(err) = dev_env::setup(project_dir_str, sol_dir_str) {
+                if let Err(err) = dev_env::setup(&config) {
                     println!(
                         "\n{} to set up dev environment at solution root {}:\n\n{}:\n{err}",
                         "Failed".red().bold(),
-                        sol_dir_str.yellow().bold(),
+                        config.sol_dir_str.yellow().bold(),
                         "ERR".yellow().bold()
                     );
                 } else {
                     println!(
                         "\n{} set up dev environment at solution root {}",
                         "Successfully".green().bold(),
-                        sol_dir_str.yellow().bold()
+                        config.sol_dir_str.yellow().bold()
                     );
                 }
             }
             Commands::Run { problem, lang } => {
-                let mut builder = Builder::new(lang, project_dir_str);
-                let mut solution = Solution::new(format!("{problem:0>4}"), sol_dir_str);
+                let mut builder = Builder::new(lang, &config);
+                let mut solution = Solution::new(format!("{problem:0>4}").as_str(), &config);
 
                 print!("Problem {}: Compiling solution... ", solution.id().blue());
                 match builder.compile(&solution) {
@@ -79,7 +81,7 @@ impl Cli {
                         }
 
                         print!("Testing solution to problem {}... ", solution.id().blue());
-                        match solution.run(builder.binfile().as_path(), project_dir_str) {
+                        match solution.run(lang, &config) {
                             Ok(run_os) => {
                                 println!(
                                     "Solution {}!\n\n{}:\n{}",
