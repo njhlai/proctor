@@ -42,7 +42,12 @@ impl Cli {
         let config = if let Ok(config) = Config::read(&self.config) {
             config
         } else {
-            println!("Can't read {}, proceeding with default configuration", "config.json".yellow().bold());
+            println!(
+                "{}: Can't read {}, proceeding with default configuration",
+                "WARNING".yellow().bold(),
+                "config.json".yellow().bold()
+            );
+
             Config::new(String::from("."), String::from("./data"))
         };
 

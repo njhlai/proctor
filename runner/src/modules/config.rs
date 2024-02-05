@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 
+use colored::Colorize;
 use serde::Deserialize;
 
 /// `runner` config JSON serializer.
@@ -18,9 +19,22 @@ impl Config {
     /// Reads from `config_path` and returns a [`Config`].
     pub fn read(config_path: &Option<String>) -> Result<Self, Box<dyn Error>> {
         Ok(serde_json::from_reader(BufReader::new(File::open(if let Some(config) = config_path.as_ref() {
-            config
+            PathBuf::from(config)
+        } else if let Some(config_local_dir) = dirs::config_local_dir() {
+            let default_config_file = config_local_dir.join("proctor/config.json");
+            if default_config_file.exists() {
+                println!("Reading config from {}", default_config_file.display().to_string().yellow().bold());
+
+                default_config_file
+            } else {
+                println!("Reading config from {}", "./config.json".yellow().bold());
+
+                PathBuf::from("config.json")
+            }
         } else {
-            "config.json"
+            println!("Reading config from {}", "./config.json".yellow().bold());
+
+            PathBuf::from("config.json")
         })?))?)
     }
 
