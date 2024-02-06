@@ -1,11 +1,17 @@
-use std::path::PathBuf;
+use std::error::Error;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::{fs, io};
 
 use colored::Colorize;
 
-/// A structure defining language-specific dev environment setups.
+use crate::modules::config::Config;
+
+use super::lsp::{Pyright, RustAnalyzer};
+
+/// A structure defining language-specific dev environment setup.
 pub struct Setup {
-    lang: String,
+    pub lang: String,
     sol_dir: PathBuf,
     configs: Vec<(PathBuf, String)>,
 }
@@ -41,4 +47,52 @@ impl Setup {
 
         Ok(())
     }
+}
+
+type Setups = Vec<(Setup, Option<Command>)>;
+
+pub fn generate_setups(config: &Config) -> Result<Setups, Box<dyn Error>> {
+    let pyright = Pyright::from(String::from("./venv"), String::from("py311"), false);
+    let mut venv_command = Command::new("python");
+    venv_command
+        .args(["-m", "venv", "venv/py311"])
+        .current_dir(&config.sol_dir_str);
+
+    let mut rust_analyzer = RustAnalyzer::new(Path::new(&config.project_dir_str));
+    rust_analyzer
+        .parse_directory_as_crates(Path::new(&config.sol_dir_str))
+        .unwrap_or_else(|_| panic!("Couldn't parse directory structure of solution root {}", config.sol_dir_str));
+
+    Ok(vec![
+        (
+            Setup::from(
+                String::from("C++"),
+                PathBuf::from(&config.sol_dir_str),
+                vec![(
+                    PathBuf::from(".clangd"),
+                    format!("CompileFlags:\n  Add: -I{}/lib/cpp/src/\n", config.project_dir_str),
+                )],
+            ),
+            None,
+        ),
+        (
+            Setup::from(
+                String::from("Python"),
+                PathBuf::from(&config.sol_dir_str),
+                vec![
+                    (PathBuf::from(".python-version"), String::from("3.11.7\n")),
+                    (PathBuf::from("pyrightconfig.json"), serde_json::to_string_pretty(&pyright)?),
+                ],
+            ),
+            Some(venv_command),
+        ),
+        (
+            Setup::from(
+                String::from("Rust"),
+                PathBuf::from(&config.sol_dir_str),
+                vec![(PathBuf::from("rust-project.json"), serde_json::to_string_pretty(&rust_analyzer)?)],
+            ),
+            None,
+        ),
+    ])
 }
