@@ -39,10 +39,13 @@ impl Solution {
         let mut runner = if lang == "py" { Command::new("python") } else { Command::new(&binfile) };
         let output = match lang {
             "cpp" => runner
-                .env("LD_LIBRARY_PATH", format!("{}/lib/cpp/build", config.project_dir_str))
                 .arg("--success")
-                .args(CLANG_COLOR_ARGS),
-            "py" => runner.arg(&binfile).arg("-v"),
+                .args(CLANG_COLOR_ARGS)
+                .env("LD_LIBRARY_PATH", format!("{}/lib/cpp/build", config.project_dir_str)),
+            "py" => runner
+                .arg(&binfile)
+                .arg("-v")
+                .env("PATH", format!("{}/venv/py311/bin:$PATH", config.sol_dir_str)),
             "rs" => runner.arg("--show-output").args(RUSTC_COLOR_ARGS),
             _ => todo!(),
         }
