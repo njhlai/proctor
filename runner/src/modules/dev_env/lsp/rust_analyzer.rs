@@ -1,8 +1,14 @@
-use std::path::Path;
+use std::error::Error;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{fs, io};
 
 use serde::Serialize;
+
+use crate::modules::config::Config;
+
+use super::super::setup::Setup;
+use super::Lsp;
 
 /// `rust-analyzer` config JSON serializer.
 #[derive(Serialize)]
@@ -66,6 +72,16 @@ impl RustAnalyzer {
         }
     }
 
+    /// Returns a [`RustAnalyzer`] using values from `config`.
+    pub fn from(config: &Config) -> RustAnalyzer {
+        let mut rust_analyzer = RustAnalyzer::new(Path::new(&config.project_dir_str));
+        rust_analyzer
+            .parse_directory_as_crates(Path::new(&config.sol_dir_str))
+            .unwrap_or_else(|_| panic!("Couldn't parse directory structure of solution root {}", config.sol_dir_str));
+
+        rust_analyzer
+    }
+
     /// Converts `path` into a [`Crate`] and pushes it into [`RustAnalyzer`] if it qualifies.
     fn cratify(&mut self, path: &Path) {
         let filepath = path.join("sol.rs");
@@ -81,7 +97,7 @@ impl RustAnalyzer {
     }
 
     /// Parses and adds qualifying directory under `sol_dir` as a [`Crate`] into [`RustAnalyzer`].
-    pub fn parse_directory_as_crates(&mut self, sol_dir: &Path) -> io::Result<()> {
+    fn parse_directory_as_crates(&mut self, sol_dir: &Path) -> io::Result<()> {
         for entry in fs::read_dir(sol_dir)? {
             self.cratify(entry?.path().as_path());
         }
@@ -89,5 +105,18 @@ impl RustAnalyzer {
         self.crates[1..].sort_unstable_by(|a, b| a.root_module.cmp(&b.root_module));
 
         Ok(())
+    }
+}
+
+impl Lsp for RustAnalyzer {
+    fn generate_setup(&self, config: &Config) -> Result<(Setup, Option<Command>), Box<dyn Error>> {
+        Ok((
+            Setup::from(
+                String::from("Rust"),
+                PathBuf::from(&config.sol_dir_str),
+                vec![(PathBuf::from("rust-project.json"), serde_json::to_string_pretty(&self)?)],
+            ),
+            None,
+        ))
     }
 }

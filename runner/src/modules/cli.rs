@@ -55,7 +55,7 @@ impl Cli {
 
         match &self.command {
             Commands::Setup => {
-                println!("Setting up dev environment at solution root {}\n", config.sol_dir_str.yellow().bold());
+                println!("Setting up dev environment at solution root {}", config.sol_dir_str.yellow().bold());
 
                 if let Err(err) = dev_env::setup(&config) {
                     println!(
