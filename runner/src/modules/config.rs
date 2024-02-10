@@ -43,8 +43,8 @@ impl Config {
         Config { project_dir_str, sol_dir_str }
     }
 
-    /// Returns the `PathBuf` to the testing bin file for language `lang`.
-    pub fn binfile(&self, lang: &str) -> PathBuf {
-        PathBuf::from(&self.project_dir_str).join(format!("bin/test_{lang}"))
+    /// Returns the `PathBuf` to the testing bin file for language (with extension `ext`).
+    pub fn binfile(&self, ext: &str) -> PathBuf {
+        PathBuf::from(&self.project_dir_str).join(format!("bin/test_{ext}"))
     }
 }

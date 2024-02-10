@@ -6,6 +6,7 @@ use std::{fs, io};
 use serde::Serialize;
 
 use crate::modules::config::Config;
+use crate::modules::lang::Lang;
 
 use super::super::setup::Setup;
 use super::Lsp;
@@ -112,7 +113,7 @@ impl Lsp for RustAnalyzer {
     fn generate_setup(&self, config: &Config) -> Result<(Setup, Option<Command>), Box<dyn Error>> {
         Ok((
             Setup::from(
-                String::from("Rust"),
+                Lang::Rust,
                 PathBuf::from(&config.sol_dir_str),
                 vec![(PathBuf::from("rust-project.json"), serde_json::to_string_pretty(&self)?)],
             ),

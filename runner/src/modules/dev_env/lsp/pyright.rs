@@ -5,6 +5,7 @@ use std::process::Command;
 use serde::Serialize;
 
 use crate::modules::config::Config;
+use crate::modules::lang::Lang;
 
 use super::super::setup::Setup;
 use super::Lsp;
@@ -44,7 +45,7 @@ impl Lsp for Pyright {
 
         Ok((
             Setup::from(
-                String::from("Python"),
+                Lang::Python,
                 PathBuf::from(&config.sol_dir_str),
                 vec![
                     (PathBuf::from(".python-version"), String::from("3.11.7\n")),

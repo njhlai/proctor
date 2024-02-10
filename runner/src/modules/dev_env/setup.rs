@@ -3,17 +3,20 @@ use std::process::Command;
 use std::{fs, io};
 
 use colored::Colorize;
+use strum::EnumProperty;
+
+use crate::modules::lang::Lang;
 
 /// A structure defining language-specific dev environment setup.
 pub struct Setup {
-    pub lang: String,
+    pub lang: Lang,
     sol_dir: PathBuf,
     configs: Vec<(PathBuf, String)>,
 }
 
 impl Setup {
     /// Returns a [`Setup`] for the language `lang` inside `sol_dir`.
-    pub fn from(lang: String, sol_dir: PathBuf, file_to_content: Vec<(PathBuf, String)>) -> Self {
+    pub fn from(lang: Lang, sol_dir: PathBuf, file_to_content: Vec<(PathBuf, String)>) -> Self {
         Setup { lang, sol_dir, configs: file_to_content }
     }
 
@@ -26,14 +29,14 @@ impl Setup {
                 println!(
                     "{} for {} dev environment at solution root {} exists, skipping",
                     file.display().to_string().yellow().bold(),
-                    self.lang.cyan().bold(),
+                    self.lang.get_str("name").unwrap().cyan().bold(),
                     self.sol_dir.display().to_string().yellow().bold(),
                 );
             } else {
                 println!(
                     "Generating {} for {} dev environment at solution root {}",
                     file.display().to_string().yellow().bold(),
-                    self.lang.cyan().bold(),
+                    self.lang.get_str("name").unwrap().cyan().bold(),
                     self.sol_dir.display().to_string().yellow().bold(),
                 );
                 fs::write(filepath, content)?;

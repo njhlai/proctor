@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use crate::modules::config::Config;
+use crate::modules::lang::Lang;
 
 use super::super::setup::Setup;
 use super::Lsp;
@@ -22,7 +23,7 @@ impl Lsp for Clangd {
     fn generate_setup(&self, config: &Config) -> Result<(Setup, Option<Command>), Box<dyn Error>> {
         Ok((
             Setup::from(
-                String::from("C++"),
+                Lang::Cpp,
                 PathBuf::from(&config.sol_dir_str),
                 vec![(PathBuf::from(".clangd"), self.content.clone())],
             ),

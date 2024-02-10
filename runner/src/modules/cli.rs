@@ -6,6 +6,7 @@ use colored::Colorize;
 use super::builder::Builder;
 use super::config::Config;
 use super::dev_env;
+use super::lang::Lang;
 use super::solution::Solution;
 
 const LEETCODE_MAX_PROBLEM_ID: i64 = 3023;
@@ -34,7 +35,7 @@ enum Commands {
         #[arg(value_parser = clap::value_parser!(u16).range(1..=LEETCODE_MAX_PROBLEM_ID))]
         problem: u16,
         /// Language to compile and test in
-        lang: String,
+        lang: Lang,
     },
 }
 
@@ -76,7 +77,7 @@ impl Cli {
             }
             Commands::Run { problem, lang } => {
                 let mut builder = Builder::new(lang, &config);
-                let mut solution = Solution::new(format!("{problem:0>4}").as_str(), &config);
+                let mut solution = Solution::new(format!("{problem:0>4}").as_str(), lang, &config);
 
                 print!("Problem {}: Compiling solution... ", solution.id().blue());
                 io::stdout().flush().unwrap();
@@ -94,7 +95,7 @@ impl Cli {
                         print!("Testing solution to problem {}... ", solution.id().blue());
                         io::stdout().flush().unwrap();
 
-                        match solution.run(lang, &config) {
+                        match solution.run() {
                             Ok(run_os) => {
                                 println!(
                                     "Solution {}!\n\n{}:\n{}",

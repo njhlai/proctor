@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use super::config::Config;
+use super::lang::Lang;
 use super::output_streams::OutputStream;
 use super::solution::Solution;
 
@@ -11,25 +12,26 @@ const CLANG_COMPILE_FLAGS: &[&str] = &["-std=c++20", "-stdlib=libc++", "-Wall", 
 
 /// A solution builder, defining the language-specific solution compiler and solution-testing bin runner.
 pub struct Builder {
-    lang: String,
+    lang: Lang,
     compiler: Command,
     binfile: PathBuf,
 }
 
 impl Builder {
     /// Constructs a [`Builder`] for the language `lang`.
-    pub fn new(lang: &str, config: &Config) -> Self {
-        match lang {
-            "cpp" => clang(config),
-            "py" => python(config),
-            "rs" => rustc(config),
-            _ => todo!(),
-        }
+    pub fn new(lang: &Lang, config: &Config) -> Self {
+        let compiler = match lang {
+            Lang::Cpp => clang(config),
+            Lang::Python => python(config),
+            Lang::Rust => rustc(config),
+        };
+
+        Builder { lang: lang.clone(), compiler, binfile: config.binfile(&lang.to_string()) }
     }
 
     /// Compiles `solution` via [`Builder`]'s `compiler` command.
     pub fn compile(&mut self, solution: &Solution) -> Result<OutputStream, OutputStream> {
-        let solfile = solution.solfile(&self.lang);
+        let solfile = solution.solfile(&self.lang.to_string());
 
         let output = self
             .compiler
@@ -54,10 +56,8 @@ impl Builder {
     }
 }
 
-/// [`Builder`] for `C++` solutions, using `clang++`.
-fn clang(config: &Config) -> Builder {
-    let lang = String::from("cpp");
-
+/// Forms the [`Command`] that executes `clang++`.
+fn clang(config: &Config) -> Command {
     let mut compiler = Command::new("clang++");
     compiler
         .args([
@@ -67,27 +67,19 @@ fn clang(config: &Config) -> Builder {
         ])
         .args(CLANG_COMPILE_FLAGS);
 
-    let binfile = config.binfile(&lang);
-
-    Builder { lang, compiler, binfile }
+    compiler
 }
 
-/// [`Builder`] for `Python` solutions, using (a wrapper around) `py_compile`.
-fn python(config: &Config) -> Builder {
-    let lang = String::from("py");
-
+/// Forms the [`Command`] that executes (a wrapper around) `py_compile`.
+fn python(config: &Config) -> Command {
     let mut compiler = Command::new("python");
     compiler.arg(format!("{}/runner/wrappers/compile.py", config.project_dir_str));
 
-    let binfile = config.binfile(&lang);
-
-    Builder { lang, compiler, binfile }
+    compiler
 }
 
-/// [`Builder`] for `Rust` solutions, using `rustc`.
-fn rustc(config: &Config) -> Builder {
-    let lang = String::from("rs");
-
+/// Forms the [`Command`] that executes `rustc`.
+fn rustc(config: &Config) -> Command {
     let mut compiler = Command::new("rustc");
     compiler
         .args([
@@ -96,7 +88,5 @@ fn rustc(config: &Config) -> Builder {
         ])
         .args(RUSTC_COMPILE_FLAGS);
 
-    let binfile = config.binfile(&lang);
-
-    Builder { lang, compiler, binfile }
+    compiler
 }
