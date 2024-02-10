@@ -1,3 +1,5 @@
+use std::io::{self, Write};
+
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 
@@ -77,6 +79,8 @@ impl Cli {
                 let mut solution = Solution::new(format!("{problem:0>4}").as_str(), &config);
 
                 print!("Problem {}: Compiling solution... ", solution.id().blue());
+                io::stdout().flush().unwrap();
+
                 match builder.compile(&solution) {
                     Ok(compile_os) => {
                         println!("{}!", "SUCCESS".green().bold());
@@ -88,6 +92,8 @@ impl Cli {
                         }
 
                         print!("Testing solution to problem {}... ", solution.id().blue());
+                        io::stdout().flush().unwrap();
+
                         match solution.run(lang, &config) {
                             Ok(run_os) => {
                                 println!(
