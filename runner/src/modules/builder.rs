@@ -35,7 +35,7 @@ impl Builder {
 
         let output = self
             .compiler
-            .arg(solfile.to_str().expect("Can't find file"))
+            .arg(solfile.display().to_string())
             .args([
                 "-o",
                 &self

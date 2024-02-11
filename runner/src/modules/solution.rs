@@ -67,7 +67,7 @@ impl Solution {
         let output = self
             .runner
             .output()
-            .expect("Failed to run compiled binary for solution-testing");
+            .expect("Failed to run compiled binary for solution-testing! Error");
 
         let output_streams = OutputStream::from(&output);
         if output.status.success() { Ok(output_streams) } else { Err(output_streams) }

@@ -42,7 +42,7 @@ impl RustAnalyzer {
             .arg("--print")
             .arg("sysroot")
             .output()
-            .expect("hello")
+            .expect("Can't run `rustc`! Error")
             .stdout;
 
         let toolchain = String::from_utf8_lossy(&toolchain);
