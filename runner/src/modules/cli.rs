@@ -23,6 +23,10 @@ pub struct Cli {
     #[arg(short, long, value_name = "FILE")]
     config: Option<String>,
 
+    /// Overwrite existing files
+    #[arg(long)]
+    overwrite: bool,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -65,7 +69,7 @@ impl Cli {
             Commands::Setup => {
                 println!("Setting up dev environment at solution root {}:", config.sol_dir_str.orange().bold());
 
-                if let Err(err) = dev_env::setup(&config) {
+                if let Err(err) = dev_env::setup(&config, self.overwrite) {
                     println!(
                         "\n{} to set up dev environment at solution root {}:\n\n{}:\n{err}",
                         "Failed".red().bold(),
