@@ -2,10 +2,12 @@ use std::io::{self, Write};
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
+use strum::EnumProperty;
 
 use super::builder::Builder;
 use super::config::Config;
 use super::dev_env;
+use super::extcolorize::ExtColorize;
 use super::lang::Lang;
 use super::solution::Solution;
 
@@ -43,12 +45,15 @@ impl Cli {
     /// Runs the `proctor` CLI app.
     pub fn run(&self) {
         let config = if let Ok(config) = Config::read(&self.config) {
+            println!("{}!", "OK".green().bold());
+
             config
         } else {
+            println!("{}!", "FAILED".red().bold());
             println!(
                 "{}: Can't read {}, proceeding with default configuration",
                 "WARNING".yellow().bold(),
-                "config.json".yellow().bold()
+                "config.json".orange().bold()
             );
 
             Config::new(String::from("."), String::from("./data"))
@@ -58,39 +63,47 @@ impl Cli {
 
         match &self.command {
             Commands::Setup => {
-                println!("Setting up dev environment at solution root {}", config.sol_dir_str.yellow().bold());
+                println!("Setting up dev environment at solution root {}:", config.sol_dir_str.orange().bold());
 
                 if let Err(err) = dev_env::setup(&config) {
                     println!(
                         "\n{} to set up dev environment at solution root {}:\n\n{}:\n{err}",
                         "Failed".red().bold(),
-                        config.sol_dir_str.yellow().bold(),
+                        config.sol_dir_str.orange().bold(),
                         "ERR".yellow().bold()
                     );
                 } else {
                     println!(
                         "\n{} set up dev environment at solution root {}",
                         "Successfully".green().bold(),
-                        config.sol_dir_str.yellow().bold()
+                        config.sol_dir_str.orange().bold()
                     );
                 }
             }
             Commands::Run { problem, lang } => {
-                let mut builder = Builder::new(lang, &config);
-                let mut solution = Solution::new(format!("{problem:0>4}").as_str(), lang, &config);
+                let id = &format!("{problem:0>4}");
 
-                print!("Problem {}: Compiling solution... ", solution.id().blue());
+                println!(
+                    "Proctoring {} solution to problem {}:",
+                    lang.get_str("name").unwrap().cyan().bold(),
+                    id.blue().bold()
+                );
+
+                let mut builder = Builder::new(lang, &config);
+                let mut solution = Solution::new(id, lang, &config);
+
+                print!("Compiling solution to problem {}... ", solution.id().blue());
                 io::stdout().flush().unwrap();
 
                 match builder.compile(&solution) {
                     Ok(compile_os) => {
                         println!("{}!", "SUCCESS".green().bold());
 
-                        if compile_os.stdout().is_empty() {
-                            println!("\nNo compile output\n");
-                        } else {
-                            println!("\n{}:\n{}\n", "COMPILE STDOUT".yellow().bold(), compile_os.stdout());
-                        }
+                        println!("\n{}:", "COMPILE STDOUT".yellow().bold());
+                        println!(
+                            "{}\n",
+                            if compile_os.stdout().is_empty() { "No compile output\n" } else { compile_os.stdout() }
+                        );
 
                         print!("Testing solution to problem {}... ", solution.id().blue());
                         io::stdout().flush().unwrap();

@@ -5,6 +5,7 @@ use std::{fs, io};
 use colored::Colorize;
 use strum::EnumProperty;
 
+use crate::modules::extcolorize::ExtColorize;
 use crate::modules::lang::Lang;
 
 /// A structure defining language-specific dev environment setup.
@@ -28,16 +29,16 @@ impl Setup {
             if filepath.exists() && !overwrite {
                 println!(
                     "{} for {} dev environment at solution root {} exists, skipping",
-                    file.display().to_string().yellow().bold(),
+                    file.display().to_string().orange().bold(),
                     self.lang.get_str("name").unwrap().cyan().bold(),
-                    self.sol_dir.display().to_string().yellow().bold(),
+                    self.sol_dir.display().to_string().orange().bold()
                 );
             } else {
                 println!(
                     "Generating {} for {} dev environment at solution root {}",
-                    file.display().to_string().yellow().bold(),
+                    file.display().to_string().orange().bold(),
                     self.lang.get_str("name").unwrap().cyan().bold(),
-                    self.sol_dir.display().to_string().yellow().bold(),
+                    self.sol_dir.display().to_string().orange().bold()
                 );
                 fs::write(filepath, content)?;
             }

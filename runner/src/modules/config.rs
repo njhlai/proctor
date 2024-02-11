@@ -1,10 +1,12 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{self, BufReader, Write};
 use std::path::PathBuf;
 
 use colored::Colorize;
 use serde::Deserialize;
+
+use super::extcolorize::ExtColorize;
 
 /// `runner` config JSON serializer.
 #[derive(Deserialize)]
@@ -23,16 +25,19 @@ impl Config {
         } else if let Some(config_local_dir) = dirs::config_local_dir() {
             let default_config_file = config_local_dir.join("proctor/config.json");
             if default_config_file.exists() {
-                println!("Reading config from {}", default_config_file.display().to_string().yellow().bold());
+                print!("Reading config from {}... ", default_config_file.display().to_string().orange().bold());
+                io::stdout().flush().unwrap();
 
                 default_config_file
             } else {
-                println!("Reading config from {}", "./config.json".yellow().bold());
+                print!("Reading config from {}... ", "./config.json".orange().bold());
+                io::stdout().flush().unwrap();
 
                 PathBuf::from("config.json")
             }
         } else {
-            println!("Reading config from {}", "./config.json".yellow().bold());
+            print!("Reading config from {}... ", "./config.json".orange().bold());
+            io::stdout().flush().unwrap();
 
             PathBuf::from("config.json")
         })?))?)
