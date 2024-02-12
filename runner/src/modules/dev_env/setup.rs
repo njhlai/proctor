@@ -1,6 +1,7 @@
+use std::fs;
+use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::Command;
-use std::{fs, io};
 
 use colored::Colorize;
 use strum::EnumProperty;
@@ -34,13 +35,16 @@ impl Setup {
                     self.sol_dir.display().to_string().orange().bold()
                 );
             } else {
-                println!(
-                    "Generating {} for {} dev environment at solution root {}",
+                print!(
+                    "Generating {} for {} dev environment at solution root {}... ",
                     file.display().to_string().orange().bold(),
                     self.lang.get_str("name").unwrap().cyan().bold(),
                     self.sol_dir.display().to_string().orange().bold()
                 );
+                io::stdout().flush()?;
+
                 fs::write(filepath, content)?;
+                println!("{}!", "OK".green().bold());
             }
         }
 

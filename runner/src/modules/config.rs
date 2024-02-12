@@ -26,18 +26,18 @@ impl Config {
             let default_config_file = config_local_dir.join("proctor/config.json");
             if default_config_file.exists() {
                 print!("Reading config from {}... ", default_config_file.display().to_string().orange().bold());
-                io::stdout().flush().unwrap();
+                io::stdout().flush()?;
 
                 default_config_file
             } else {
                 print!("Reading config from {}... ", "./config.json".orange().bold());
-                io::stdout().flush().unwrap();
+                io::stdout().flush()?;
 
                 PathBuf::from("config.json")
             }
         } else {
             print!("Reading config from {}... ", "./config.json".orange().bold());
-            io::stdout().flush().unwrap();
+            io::stdout().flush()?;
 
             PathBuf::from("config.json")
         })?))?)

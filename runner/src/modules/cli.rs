@@ -71,10 +71,10 @@ impl Cli {
 
                 if let Err(err) = dev_env::setup(&config, self.overwrite) {
                     println!(
-                        "\n{} to set up dev environment at solution root {}:\n\n{}:\n{err}",
+                        "{} to set up dev environment at solution root {}!\n{}: {err}",
                         "Failed".red().bold(),
                         config.sol_dir_str.orange().bold(),
-                        "ERR".yellow().bold()
+                        "ERR".red().bold()
                     );
                 } else {
                     println!(
