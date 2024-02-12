@@ -1,4 +1,3 @@
-pub mod lsp;
 mod setup;
 
 use std::error::Error;
@@ -9,7 +8,7 @@ use strum::{EnumCount, EnumProperty, IntoEnumIterator};
 use super::config::Config;
 use super::lang::Lang;
 
-pub use self::setup::Setups;
+pub use self::setup::{Setup, Setups};
 
 /// Sets up the dev environment.
 pub fn setup(config: &Config, overwrite: bool) -> Result<(), Box<dyn Error>> {

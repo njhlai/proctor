@@ -1,3 +1,5 @@
+mod lsp;
+
 use std::error::Error;
 use std::path::PathBuf;
 use std::process::Command;
@@ -5,8 +7,9 @@ use std::process::Command;
 use strum::{Display, EnumCount, EnumIter, EnumProperty, EnumString};
 
 use super::config::Config;
-use super::dev_env::lsp::{self, Lsp};
 use super::dev_env::Setups;
+
+use self::lsp::Lsp;
 
 const CLANG_COLOR_ARGS: &[&str] = &["--force-colors", "true"];
 const CLANG_COMPILE_FLAGS: &[&str] = &["-std=c++20", "-stdlib=libc++", "-Wall", "-fsanitize=address", "-g3", "-O2"];

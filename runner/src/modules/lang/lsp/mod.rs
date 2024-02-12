@@ -6,8 +6,7 @@ use std::error::Error;
 use std::process::Command;
 
 use crate::modules::config::Config;
-
-use super::setup::Setup;
+use crate::modules::dev_env::Setup;
 
 pub use self::clangd::Clangd;
 pub use self::pyright::Pyright;

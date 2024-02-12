@@ -1,8 +1,9 @@
 use std::path::PathBuf;
 use std::process::Command;
 
-use super::config::Config;
-use super::lang::Lang;
+use crate::modules::config::Config;
+use crate::modules::lang::Lang;
+
 use super::output_streams::OutputStream;
 
 /// A structure defining a solution to a coding problem.

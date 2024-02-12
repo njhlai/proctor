@@ -6,9 +6,9 @@ use std::{fs, io};
 use serde::Serialize;
 
 use crate::modules::config::Config;
+use crate::modules::dev_env::Setup;
 use crate::modules::lang::Lang;
 
-use super::super::setup::Setup;
 use super::Lsp;
 
 /// `rust-analyzer` config JSON serializer.

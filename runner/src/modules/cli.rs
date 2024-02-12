@@ -1,15 +1,12 @@
-use std::io::{self, Write};
-
 use clap::{Parser, Subcommand};
 use colored::Colorize;
 use strum::EnumProperty;
 
-use super::builder::Builder;
 use super::config::Config;
 use super::dev_env;
 use super::extcolorize::ExtColorize;
+use super::grader;
 use super::lang::Lang;
-use super::solution::Solution;
 
 const LEETCODE_MAX_PROBLEM_ID: i64 = 3023;
 
@@ -93,45 +90,7 @@ impl Cli {
                     id.blue().bold()
                 );
 
-                let mut builder = Builder::new(lang, &config);
-                let mut solution = Solution::new(id, lang, &config);
-
-                print!("Compiling solution to problem {}... ", solution.id().blue());
-                io::stdout().flush().unwrap();
-
-                match builder.compile(&solution) {
-                    Ok(compile_os) => {
-                        println!("{}!", "SUCCESS".green().bold());
-
-                        println!("\n{}:", "COMPILE STDOUT".yellow().bold());
-                        println!(
-                            "{}\n",
-                            if compile_os.stdout().is_empty() { "No compile output\n" } else { compile_os.stdout() }
-                        );
-
-                        print!("Testing solution to problem {}... ", solution.id().blue());
-                        io::stdout().flush().unwrap();
-
-                        match solution.run() {
-                            Ok(run_os) => {
-                                println!(
-                                    "Solution {}!\n\n{}:\n{}",
-                                    "PASSED".green().bold(),
-                                    "TEST RESULT".yellow().bold(),
-                                    run_os.stdout_else_stderr(),
-                                );
-                            }
-                            Err(run_os) => {
-                                println!("Solution {}!\n", "FAILED".red().bold());
-                                println!("\n{}:\n{}", "TEST STDOUT".yellow().bold(), run_os.stdout());
-                                println!("\n{}:\n{}", "TEST STDERR".yellow().bold(), run_os.stderr());
-                            }
-                        }
-                    }
-                    Err(compile_os) => {
-                        println!("{}!\n\n{}:\n{}", "ERROR".red().bold(), "COMPILE STDERR".yellow().bold(), compile_os.stderr());
-                    }
-                }
+                grader::run(id, lang, &config);
             }
         }
     }

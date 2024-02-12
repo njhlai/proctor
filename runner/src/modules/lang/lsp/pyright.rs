@@ -5,9 +5,9 @@ use std::process::Command;
 use serde::Serialize;
 
 use crate::modules::config::Config;
+use crate::modules::dev_env::Setup;
 use crate::modules::lang::Lang;
 
-use super::super::setup::Setup;
 use super::Lsp;
 
 /// `pyright` config JSON serializer.

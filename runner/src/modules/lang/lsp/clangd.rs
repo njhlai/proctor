@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use crate::modules::config::Config;
+use crate::modules::dev_env::Setup;
 use crate::modules::lang::Lang;
 
-use super::super::setup::Setup;
 use super::Lsp;
 
 /// A structure for `clangd` config for [`Lsp`] trait application.
