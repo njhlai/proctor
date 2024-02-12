@@ -5,9 +5,6 @@ use super::config::Config;
 use super::lang::Lang;
 use super::output_streams::OutputStream;
 
-const RUSTC_COLOR_ARGS: &[&str] = &["--color", "always"];
-const CLANG_COLOR_ARGS: &[&str] = &["--force-colors", "true"];
-
 /// A structure defining a solution to a coding problem.
 pub struct Solution {
     id: String,
@@ -19,32 +16,7 @@ impl Solution {
     /// Constructs a [`Solution`] to the problem `id`.
     pub fn new(id: &str, lang: &Lang, config: &Config) -> Self {
         let binfile = config.binfile(&lang.to_string());
-        let runner = match lang {
-            Lang::Cpp => {
-                let mut runner = Command::new(&binfile);
-                runner
-                    .arg("--success")
-                    .args(CLANG_COLOR_ARGS)
-                    .env("LD_LIBRARY_PATH", format!("{}/lib/cpp/build", config.project_dir_str));
-
-                runner
-            }
-            Lang::Python => {
-                let mut runner = Command::new("python");
-                runner
-                    .arg(&binfile)
-                    .arg("-v")
-                    .env("PATH", format!("{}/venv/py311/bin:$PATH", config.sol_dir_str));
-
-                runner
-            }
-            Lang::Rust => {
-                let mut runner = Command::new(&binfile);
-                runner.arg("--show-output").args(RUSTC_COLOR_ARGS);
-
-                runner
-            }
-        };
+        let runner = lang.tester(&binfile, config);
 
         Solution { id: String::from(id), prob_dir: PathBuf::from(&config.sol_dir_str).join(id), runner }
     }

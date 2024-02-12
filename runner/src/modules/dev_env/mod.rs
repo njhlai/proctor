@@ -1,19 +1,28 @@
-mod lsp;
+pub mod lsp;
 mod setup;
 
 use std::error::Error;
 
 use colored::Colorize;
-use strum::EnumProperty;
+use strum::{EnumCount, EnumProperty, IntoEnumIterator};
 
 use super::config::Config;
+use super::lang::Lang;
+
+pub use self::setup::Setups;
 
 /// Sets up the dev environment.
 pub fn setup(config: &Config, overwrite: bool) -> Result<(), Box<dyn Error>> {
-    Ok(lsp::generate_setups(config)?
+    Ok(Lang::iter()
+        .generate_setups(config)?
         .into_iter()
-        .try_for_each(|(setup, additional_command)| {
-            println!("\nRunning setup for {}:", setup.lang.get_str("name").unwrap().cyan().bold());
+        .enumerate()
+        .try_for_each(|(i, (setup, additional_command))| {
+            println!(
+                "{} Running setup for {}:",
+                format!("[{}/{}]", i + 1, Lang::COUNT).dimmed(),
+                setup.lang.get_str("name").unwrap().cyan().bold()
+            );
 
             setup.write(overwrite).and_then(|()| {
                 if let Some(mut cmd) = additional_command {
