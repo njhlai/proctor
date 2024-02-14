@@ -16,6 +16,7 @@ const CLANG_COMPILE_FLAGS: &[&str] = &["-std=c++20", "-stdlib=libc++", "-Wall", 
 const RUSTC_COLOR_ARGS: &[&str] = &["--color", "always"];
 const RUSTC_COMPILE_FLAGS: &[&str] = &["--color", "always", "--edition", "2021", "--test"];
 
+/// An enum listing available code languages.
 #[derive(Clone, Display, EnumCount, EnumIter, EnumProperty, EnumString, PartialEq)]
 pub enum Lang {
     #[strum(serialize = "cpp", props(name = "C++"))]
@@ -27,6 +28,11 @@ pub enum Lang {
 }
 
 impl Lang {
+    /// Get the full name of the language.
+    pub fn get_name(&self) -> &'static str {
+        self.get_str("name").unwrap()
+    }
+
     /// Returns the [`Command`] that executes the solution-testing `binfile`.
     pub fn tester(&self, binfile: &PathBuf, config: &Config) -> Command {
         match self {

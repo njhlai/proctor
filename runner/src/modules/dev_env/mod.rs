@@ -3,7 +3,7 @@ mod setup;
 use std::error::Error;
 
 use colored::Colorize;
-use strum::{EnumCount, EnumProperty, IntoEnumIterator};
+use strum::{EnumCount, IntoEnumIterator};
 
 use super::config::Config;
 use super::lang::Lang;
@@ -20,12 +20,12 @@ pub fn setup(config: &Config, overwrite: bool) -> Result<(), Box<dyn Error>> {
             println!(
                 "{} Running setup for {}:",
                 format!("[{}/{}]", i + 1, Lang::COUNT).dimmed(),
-                setup.lang.get_str("name").unwrap().cyan().bold()
+                setup.lang.get_name().cyan().bold()
             );
 
             setup.write(overwrite).and_then(|()| {
                 if let Some(mut cmd) = additional_command {
-                    println!("Running additional commands for {}...", setup.lang.get_str("name").unwrap().cyan().bold());
+                    println!("Running additional commands for {}...", setup.lang.get_name().cyan().bold());
 
                     cmd.output().map(|_| ())
                 } else {

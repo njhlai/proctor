@@ -1,6 +1,5 @@
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use strum::EnumProperty;
 
 use super::config::Config;
 use super::dev_env;
@@ -84,11 +83,7 @@ impl Cli {
             Commands::Run { problem, lang } => {
                 let id = &format!("{problem:0>4}");
 
-                println!(
-                    "Proctoring {} solution to problem {}:",
-                    lang.get_str("name").unwrap().cyan().bold(),
-                    id.blue().bold()
-                );
+                println!("Proctoring {} solution to problem {}:", lang.get_name().cyan().bold(), id.blue().bold());
 
                 grader::run(id, lang, &config);
             }

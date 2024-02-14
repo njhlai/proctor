@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use colored::Colorize;
-use strum::EnumProperty;
 
 use crate::modules::extcolorize::ExtColorize;
 use crate::modules::lang::Lang;
@@ -31,14 +30,14 @@ impl Setup {
                 println!(
                     "{} for {} dev environment at solution root {} exists, skipping",
                     file.display().to_string().orange().bold(),
-                    self.lang.get_str("name").unwrap().cyan().bold(),
+                    self.lang.get_name().cyan().bold(),
                     self.sol_dir.display().to_string().orange().bold()
                 );
             } else {
                 print!(
                     "Generating {} for {} dev environment at solution root {}... ",
                     file.display().to_string().orange().bold(),
-                    self.lang.get_str("name").unwrap().cyan().bold(),
+                    self.lang.get_name().cyan().bold(),
                     self.sol_dir.display().to_string().orange().bold()
                 );
                 io::stdout().flush()?;
