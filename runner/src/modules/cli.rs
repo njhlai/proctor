@@ -21,10 +21,6 @@ pub struct Cli {
     #[arg(short, long, value_name = "FILE")]
     config: Option<String>,
 
-    /// Overwrite existing files
-    #[arg(long)]
-    overwrite: bool,
-
     #[command(subcommand)]
     command: Commands,
 }
@@ -32,7 +28,11 @@ pub struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Setups the dev environment
-    Setup,
+    Setup {
+        /// Overwrite existing files
+        #[arg(long)]
+        overwrite: bool,
+    },
     /// Compile and test solution to <PROBLEM>
     Run {
         /// Problem ID
@@ -66,10 +66,10 @@ impl Cli {
         println!();
 
         match &self.command {
-            Commands::Setup => {
+            Commands::Setup { overwrite } => {
                 println!("Setting up dev environment at solution root {}:", config.sol_dir_str.orange().bold());
 
-                if let Err(err) = dev_env::setup(&config, self.overwrite) {
+                if let Err(err) = dev_env::setup(&config, *overwrite) {
                     println!(
                         "{} to set up dev environment at solution root {}!\n{}: {err}",
                         "Failed".red().bold(),
