@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufReader, Write};
@@ -5,6 +6,7 @@ use std::path::PathBuf;
 
 use colored::Colorize;
 use serde::Deserialize;
+use serde_json::Value;
 
 use super::extcolorize::ExtColorize;
 
@@ -15,6 +17,7 @@ pub struct Config {
     pub project_dir_str: String,
     #[serde(rename = "sol_dir")]
     pub sol_dir_str: String,
+    pub lang: HashMap<String, Value>,
 }
 
 impl Config {
@@ -54,7 +57,7 @@ impl Config {
 
     /// Returns a [`Config`] with the specified configurations.
     pub fn new(project_dir_str: String, sol_dir_str: String) -> Self {
-        Config { project_dir_str, sol_dir_str }
+        Config { project_dir_str, sol_dir_str, lang: HashMap::default() }
     }
 
     /// Returns the `PathBuf` to the testing bin file for language (with extension `ext`).

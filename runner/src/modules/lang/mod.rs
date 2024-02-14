@@ -104,7 +104,7 @@ impl LangIter {
     pub fn generate_setups(self, config: &Config) -> Result<Setups, Box<dyn Error>> {
         self.map(|lang| match lang {
             Lang::Cpp => lsp::Clangd::from(config).generate_setup(config),
-            Lang::Python => lsp::Pyright::from(String::from("./venv"), String::from("py311"), false).generate_setup(config),
+            Lang::Python => lsp::Pyright::from(config).generate_setup(config),
             Lang::Rust => lsp::RustAnalyzer::from(config).generate_setup(config),
         })
         .collect()

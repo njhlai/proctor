@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::{fs, io};
 
+use colored::Colorize;
 use serde::Serialize;
 
 use crate::modules::config::Config;
@@ -75,12 +76,20 @@ impl RustAnalyzer {
 
     /// Returns a [`RustAnalyzer`] using values from `config`.
     pub fn from(config: &Config) -> RustAnalyzer {
-        let mut rust_analyzer = RustAnalyzer::new(Path::new(&config.project_dir_str));
-        rust_analyzer
-            .parse_directory_as_crates(Path::new(&config.sol_dir_str))
-            .unwrap_or_else(|_| panic!("Couldn't parse directory structure of solution root {}", config.sol_dir_str));
+        if config.lang.get(&Lang::Rust.to_string()).is_some() {
+            let mut rust_analyzer = RustAnalyzer::new(Path::new(&config.project_dir_str));
+            rust_analyzer
+                .parse_directory_as_crates(Path::new(&config.sol_dir_str))
+                .unwrap_or_else(|_| panic!("Couldn't parse directory structure of solution root {}", config.sol_dir_str));
 
-        rust_analyzer
+            rust_analyzer
+        } else {
+            panic!(
+                "{}: Can't find entry for {} in lang of config!",
+                "ERR".red().bold(),
+                Lang::Rust.get_name().cyan().bold()
+            )
+        }
     }
 
     /// Converts `path` into a [`Crate`] and pushes it into [`RustAnalyzer`] if it qualifies.
