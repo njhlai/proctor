@@ -23,9 +23,12 @@ impl Setup {
 
     /// Write configurations defined by [`Setup`]'s `file_to_content` to disk.
     pub fn write(&self, overwrite: bool) -> io::Result<()> {
-        for (file, content) in &self.configs {
+        let n = self.configs.len();
+
+        for (i, (file, content)) in self.configs.iter().enumerate() {
             let filepath = self.sol_dir.join(file);
 
+            print!("  {} ", format!("[{}/{}]", i + 1, n).dimmed());
             if filepath.exists() && !overwrite {
                 println!(
                     "{} for {} dev environment at solution root {} exists, skipping",

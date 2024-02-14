@@ -1,6 +1,8 @@
 mod setup;
 
 use std::error::Error;
+use std::fs;
+use std::path::PathBuf;
 
 use colored::Colorize;
 use strum::{EnumCount, IntoEnumIterator};
@@ -12,6 +14,8 @@ pub use self::setup::{Setup, Setups};
 
 /// Sets up the dev environment.
 pub fn setup(config: &Config, overwrite: bool) -> Result<(), Box<dyn Error>> {
+    fs::create_dir_all(PathBuf::from(&config.sol_dir_str))?;
+
     Ok(Lang::iter()
         .generate_setups(config)?
         .into_iter()
@@ -25,7 +29,7 @@ pub fn setup(config: &Config, overwrite: bool) -> Result<(), Box<dyn Error>> {
 
             setup.write(overwrite).and_then(|()| {
                 if let Some(mut cmd) = additional_command {
-                    println!("Running additional commands for {}...", setup.lang.get_name().cyan().bold());
+                    println!("  {} Running additional commands for {}...", "*".dimmed(), setup.lang.get_name().cyan().bold());
 
                     cmd.output().map(|_| ())
                 } else {
