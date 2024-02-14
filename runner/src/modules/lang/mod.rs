@@ -17,7 +17,7 @@ const RUSTC_COLOR_ARGS: &[&str] = &["--color", "always"];
 const RUSTC_COMPILE_FLAGS: &[&str] = &["--color", "always", "--edition", "2021", "--test"];
 
 /// An enum listing available code languages.
-#[derive(Clone, Display, EnumCount, EnumIter, EnumProperty, EnumString, PartialEq)]
+#[derive(Clone, Debug, Display, EnumCount, EnumIter, EnumProperty, EnumString, PartialEq)]
 pub enum Lang {
     #[strum(serialize = "cpp", props(name = "C++"))]
     Cpp,

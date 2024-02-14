@@ -25,7 +25,7 @@ pub struct Cli {
     command: Commands,
 }
 
-#[derive(Subcommand)]
+#[derive(Debug, Subcommand)]
 enum Commands {
     /// Setups the dev environment
     Setup {
@@ -65,6 +65,7 @@ impl Cli {
 
         println!();
 
+        println!("Running command: {:#?}\n", self.command);
         match &self.command {
             Commands::Setup { overwrite } => {
                 println!("Setting up dev environment at solution root {}:", config.sol_dir_str.orange().bold());
