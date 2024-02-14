@@ -5,7 +5,7 @@ use std::process::Command;
 
 use colored::Colorize;
 
-use crate::modules::extcolorize::ExtColorize;
+use crate::modules::colorize::MoreColorize;
 use crate::modules::lang::Lang;
 
 /// A structure defining language-specific dev environment setup.

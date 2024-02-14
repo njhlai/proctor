@@ -3,9 +3,9 @@ use std::process;
 use clap::{Parser, Subcommand};
 use colored::{ColoredString, Colorize};
 
+use super::colorize::MoreColorize;
 use super::config::Config;
 use super::dev_env;
-use super::extcolorize::ExtColorize;
 use super::grader;
 use super::lang::Lang;
 

@@ -8,7 +8,7 @@ use colored::Colorize;
 use serde::Deserialize;
 use serde_json::Value;
 
-use super::extcolorize::ExtColorize;
+use super::colorize::MoreColorize;
 
 /// `runner` config JSON serializer.
 #[derive(Debug, Deserialize)]
