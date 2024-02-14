@@ -1,0 +1,22 @@
+{
+  "project_dir": "{{ PATH_TO_PROCTOR }}",
+  "sol_dir": "{{ PATH_TO_SOLUTIONS_DIRECTORY }}",
+  "lang": {
+    "cpp": {
+      "clangd": {
+        "content": "{{ CLANGD_CONTENT }}"
+      }
+    },
+    "py": {
+      "version": "{{ PYTHON_VERSION }}",
+      "pyright": {
+        "venvPath": "{{ VENV_PARENT_DIR }}",
+        "venv": "{{ VENV_DIR }}",
+        "reportUnusedImport": false
+      }
+    },
+    "rs": {
+      "rust_analyzer": {}
+    }
+  }
+}
