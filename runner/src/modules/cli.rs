@@ -1,5 +1,7 @@
+use std::process;
+
 use clap::{Parser, Subcommand};
-use colored::Colorize;
+use colored::{ColoredString, Colorize};
 
 use super::config::Config;
 use super::dev_env;
@@ -44,19 +46,21 @@ enum Commands {
 impl Cli {
     /// Runs the `proctor` CLI app.
     pub fn run(&self) {
-        let config = if let Ok(config) = Config::read(&self.config) {
-            println!("{}!", "OK".green().bold());
+        let config = if let Ok((config, pathbuf)) = Config::read(&self.config) {
+            println!(
+                "\n{} read {}, with config values:\n{:#?}",
+                "Successfully".green().bold(),
+                pathbuf.map_or_else(
+                    || String::from("default configuration").orange().bold(),
+                    |p| ColoredString::from(format!("configuration from {}", p.display().to_string().orange().bold())),
+                ),
+                config
+            );
 
             config
         } else {
-            println!("{}!", "FAILED".red().bold());
-            println!(
-                "{}: Can't read {}, proceeding with default configuration",
-                "WARNING".yellow().bold(),
-                "config.json".orange().bold()
-            );
-
-            Config::new(String::from("."), String::from("./data"))
+            println!("\n{} to read configuration, exiting proctor", "Failed".red().bold());
+            process::exit(1);
         };
 
         println!();

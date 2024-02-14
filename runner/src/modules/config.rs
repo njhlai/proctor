@@ -9,7 +9,7 @@ use serde::Deserialize;
 use super::extcolorize::ExtColorize;
 
 /// `runner` config JSON serializer.
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Config {
     #[serde(rename = "project_dir")]
     pub project_dir_str: String,
@@ -19,28 +19,37 @@ pub struct Config {
 
 impl Config {
     /// Reads from `config_path` and returns a [`Config`].
-    pub fn read(config_path: &Option<String>) -> Result<Self, Box<dyn Error>> {
-        Ok(serde_json::from_reader(BufReader::new(File::open(if let Some(config) = config_path.as_ref() {
-            PathBuf::from(config)
-        } else if let Some(config_local_dir) = dirs::config_local_dir() {
+    pub fn read(config_path: &Option<String>) -> Result<(Self, Option<PathBuf>), Box<dyn Error>> {
+        let mut maybe_config_files = vec![];
+
+        if let Some(config) = config_path.as_ref() {
+            maybe_config_files.push(PathBuf::from(config));
+        }
+        maybe_config_files.push(PathBuf::from("./config.json"));
+        if let Some(config_local_dir) = dirs::config_local_dir() {
             let default_config_file = config_local_dir.join("proctor/config.json");
-            if default_config_file.exists() {
-                print!("Reading config from {}... ", default_config_file.display().to_string().orange().bold());
-                io::stdout().flush()?;
+            maybe_config_files.push(default_config_file);
+        }
 
-                default_config_file
-            } else {
-                print!("Reading config from {}... ", "./config.json".orange().bold());
-                io::stdout().flush()?;
+        for (i, pathbuf) in maybe_config_files.iter().enumerate() {
+            if i > 0 { println!("{}!", "FAILED".red().bold()); }
 
-                PathBuf::from("config.json")
-            }
-        } else {
-            print!("Reading config from {}... ", "./config.json".orange().bold());
+            print!("Reading config from {}... ", pathbuf.display().to_string().orange().bold());
             io::stdout().flush()?;
 
-            PathBuf::from("config.json")
-        })?))?)
+            if let Ok(file) = File::open(pathbuf) {
+                if let Ok(config) = serde_json::from_reader(BufReader::new(file)) {
+                    println!("{}!", "OK".green().bold());
+
+                    return Ok((config, Some(pathbuf.clone())));
+                }
+            }
+        }
+
+        println!("{}!", "FAILED".red().bold());
+        println!("{}: Can't read configuration, proceeding with default configuration", "WARNING".yellow().bold());
+
+        Ok((Config::new(String::from("."), String::from("./data")), None))
     }
 
     /// Returns a [`Config`] with the specified configurations.
