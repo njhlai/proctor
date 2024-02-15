@@ -1,4 +1,5 @@
 mod leetcode;
+#[allow(clippy::module_name_repetitions)]
 mod query;
 
 use std::error::Error;
@@ -13,6 +14,7 @@ use super::colorize::MoreColorize;
 use super::config::Config;
 use super::lang::Lang;
 
+/// Fetches and renders the question data into a solution file, of which its [`PathBuf`] is returned if successful.
 pub fn fetch(id: &str, lang: &Lang, config: &Config, overwrite: bool) -> Result<PathBuf, Box<dyn Error>> {
     let (file, dirpath) = (format!("sol.{lang}"), PathBuf::from(&config.sol_dir_str).join(id));
     fs::create_dir_all(&dirpath)?;
