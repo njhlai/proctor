@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::io::{self, Write};
 
@@ -9,7 +8,7 @@ use strum::Display;
 
 use crate::modules::lang::Lang;
 
-use super::query::{Constructible, Query, QueryResponse, Response};
+use super::query::{Empty, Query, QueryResponse, Response};
 
 const QUESTION_DATA_QUERY: &str = r"
 query getQuestionDetail($titleSlug: String!) {
@@ -25,6 +24,22 @@ query getQuestionDetail($titleSlug: String!) {
 ";
 const EMPTY_QUERY: &str = "";
 
+#[derive(Display)]
+enum LeetcodeURL {
+    #[strum(to_string = "https://leetcode.com/graphql")]
+    GraphQL,
+    #[strum(to_string = "https://leetcode.com/api/problems/all")]
+    APIProblemsAll,
+}
+
+type QuestionDataQuery = Query<String, QueryResponse<QuestionData>>;
+
+impl QuestionDataQuery {
+    fn new(title: &str) -> Self {
+        Query::from(LeetcodeURL::GraphQL.to_string(), QUESTION_DATA_QUERY, format!("{{\"titleSlug\": \"{title}\"}}"))
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct QuestionData {
@@ -36,6 +51,14 @@ struct QuestionData {
 struct CodeSnippetJson {
     lang: String,
     code: String,
+}
+
+type ProblemSetQuery = Query<Empty, ProblemSet>;
+
+impl ProblemSetQuery {
+    fn new() -> Self {
+        Query::from(LeetcodeURL::APIProblemsAll.to_string(), EMPTY_QUERY, Empty)
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -55,47 +78,6 @@ struct Stat {
     question__title_slug: String,
 }
 
-#[derive(Display)]
-enum LeetcodeURL {
-    #[strum(to_string = "https://leetcode.com/graphql")]
-    GraphQL,
-    #[strum(to_string = "https://leetcode.com/api/problems/all")]
-    APIProblemsAll,
-}
-
-type QuestionDataQuery = Query<String, QueryResponse<QuestionData>>;
-
-impl QuestionDataQuery {
-    fn new(title: String) -> Self {
-        Query::from(LeetcodeURL::GraphQL.to_string(), QUESTION_DATA_QUERY, title)
-    }
-}
-
-impl Constructible for QuestionDataQuery {
-    fn json(&self) -> HashMap<&str, String> {
-        let mut json = HashMap::new();
-
-        json.insert("query", String::from(self.query));
-        json.insert("variables", r#"{"titleSlug": "$titleSlug"}"#.replace("$titleSlug", &self.variable));
-
-        json
-    }
-}
-
-type ProblemSetQuery = Query<(), ProblemSet>;
-
-impl ProblemSetQuery {
-    fn new() -> Self {
-        Query::from(LeetcodeURL::APIProblemsAll.to_string(), EMPTY_QUERY, ())
-    }
-}
-
-impl Constructible for ProblemSetQuery {
-    fn json(&self) -> HashMap<&str, String> {
-        HashMap::new()
-    }
-}
-
 pub fn query(id: &str, lang: &Lang) -> Result<String, Box<dyn Error>> {
     let usize_id = id.parse::<usize>()?;
 
@@ -112,7 +94,7 @@ pub fn query(id: &str, lang: &Lang) -> Result<String, Box<dyn Error>> {
         .unwrap()
         .stat
         .question__title_slug
-        .clone();
+        .as_str();
     println!("{}!", "OK".green().bold());
 
     print!("Querying question data for problem {}... ", id.cyan().bold());

@@ -1,10 +1,19 @@
 use std::collections::HashMap;
 use std::error::Error;
+use std::fmt::Display;
 use std::marker::PhantomData;
 
 use reqwest::blocking::Client;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer};
+
+pub struct Empty;
+
+impl std::fmt::Display for Empty {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "")
+    }
+}
 
 pub struct Query<V, T> {
     url: String,
@@ -13,14 +22,31 @@ pub struct Query<V, T> {
     response_type: PhantomData<T>,
 }
 
-impl<V, T> Query<V, T> {
+impl<V: Display, T> Query<V, T> {
     pub fn from(url: String, query: &'static str, variable: V) -> Self {
         Query { url, query, variable, response_type: PhantomData }
     }
 }
 
-pub trait Constructible {
+trait Constructible {
     fn json(&self) -> HashMap<&str, String>;
+}
+
+impl<V: Display, T> Constructible for Query<V, T> {
+    fn json(&self) -> HashMap<&str, String> {
+        let mut json = HashMap::new();
+
+        if !self.query.is_empty() {
+            json.insert("query", String::from(self.query));
+
+            let variable = self.variable.to_string();
+            if !variable.is_empty() {
+                json.insert("variables", variable);
+            }
+        }
+
+        json
+    }
 }
 
 pub trait Response<T: Sized> {
