@@ -1,7 +1,6 @@
 mod lsp;
 
 use std::error::Error;
-use std::path::PathBuf;
 use std::process::Command;
 
 use strum::{Display, EnumCount, EnumIter, EnumProperty, EnumString};
@@ -34,7 +33,9 @@ impl Lang {
     }
 
     /// Returns the [`Command`] that executes the solution-testing `binfile`.
-    pub fn tester(&self, binfile: &PathBuf, config: &Config) -> Command {
+    pub fn tester(&self, config: &Config) -> Command {
+        let binfile = config.binfile(&self.to_string());
+
         match self {
             Lang::Cpp => {
                 let mut runner = Command::new(binfile);

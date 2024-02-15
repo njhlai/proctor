@@ -16,8 +16,7 @@ pub struct Solution {
 impl Solution {
     /// Constructs a [`Solution`] to the problem `id`.
     pub fn new(id: &str, lang: &Lang, config: &Config) -> Self {
-        let binfile = config.binfile(&lang.to_string());
-        let runner = lang.tester(&binfile, config);
+        let runner = lang.tester(config);
 
         Solution { id: String::from(id), prob_dir: PathBuf::from(&config.sol_dir_str).join(id), runner }
     }
