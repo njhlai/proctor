@@ -21,7 +21,7 @@ const RUSTC_COMPILE_FLAGS: &[&str] = &["--color", "always", "--edition", "2021",
 pub enum Lang {
     #[strum(serialize = "cpp", props(name = "C++"))]
     Cpp,
-    #[strum(serialize = "py", props(name = "Python"))]
+    #[strum(serialize = "py", props(name = "Python3"))]
     Python,
     #[strum(serialize = "rs", props(name = "Rust"))]
     Rust,

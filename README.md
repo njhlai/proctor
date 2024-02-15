@@ -74,8 +74,16 @@ To install the language-specific libraries for coding problems, compile each lan
     ```
 
 ### Running
+#### Fetching question
+To fetch a question, run:
+```sh
+proctor fetch [PROBLEM_ID] [LANG]
+```
+`proctor` will fetch data related to the question specified and render it as `[PATH_TO_SOLUTIONS_DIRECTORY]/leetcode/[PROBLEM_ID]/sol.[LANG]`.
+
+#### Compile and test solution
 To compile and test a solution, run:
 ```sh
 proctor run [PROBLEM_ID] [LANG]
 ```
-`proctor` will then compile and test the solution at `[PATH_TO_SOLUTIONS_DIRECTORY]/leetcode/[PROBLEM_ID]/sol.[LANG]`.
+`proctor` will compile and test the solution at `[PATH_TO_SOLUTIONS_DIRECTORY]/leetcode/[PROBLEM_ID]/sol.[LANG]`.

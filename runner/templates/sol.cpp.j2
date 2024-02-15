@@ -1,0 +1,22 @@
+#include <utils.h>
+#include <leetcode/includes.h>
+{% if datastructs -%}
+{% for struct in datastructs -%}
+#include <leetcode/{{ struct | lower }}.h>
+{% endfor -%}
+{% endif %}
+using namespace std;
+
+//>>>>>
+{{ code }}
+//<<<<<
+
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
+#include <doctest/doctest.h>
+
+TEST_CASE("Case 1") {
+    // Write your test here
+}
+
+// More tests here

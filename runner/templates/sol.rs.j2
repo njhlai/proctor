@@ -1,0 +1,22 @@
+{% if datastructs -%}
+{% for struct in datastructs -%}
+use libproctor::leetcode::{{ struct }};
+{% endfor %}
+{% endif -%}
+struct Solution;
+
+//>>>>>
+{{ code }}
+//<<<<<
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn case_1() {
+        // Write your test here
+    }
+
+    // More tests here
+}

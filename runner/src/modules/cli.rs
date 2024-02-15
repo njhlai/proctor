@@ -6,6 +6,7 @@ use colored::{ColoredString, Colorize};
 use super::colorize::MoreColorize;
 use super::config::Config;
 use super::dev_env;
+use super::fetcher;
 use super::grader;
 use super::lang::Lang;
 
@@ -33,12 +34,26 @@ enum Commands {
         #[arg(long)]
         overwrite: bool,
     },
+    /// Fetches the problem
+    Fetch {
+        /// Problem ID
+        #[arg(value_parser = clap::value_parser!(u16).range(1..=LEETCODE_MAX_PROBLEM_ID))]
+        problem: u16,
+
+        /// Code language to fetch problem
+        lang: Lang,
+
+        /// Overwrite existing files
+        #[arg(long)]
+        overwrite: bool,
+    },
     /// Compile and test solution to <PROBLEM>
     Run {
         /// Problem ID
         #[arg(value_parser = clap::value_parser!(u16).range(1..=LEETCODE_MAX_PROBLEM_ID))]
         problem: u16,
-        /// Language to compile and test in
+
+        /// Code language to compile and test in
         lang: Lang,
     },
 }
@@ -83,6 +98,20 @@ impl Cli {
                         "Successfully".green().bold(),
                         config.sol_dir_str.orange().bold()
                     );
+                }
+            }
+            Commands::Fetch { problem, lang, overwrite } => {
+                let id = &format!("{problem:0>4}");
+
+                println!("Fetching problem {} in {}:", id.blue().bold(), lang.get_name().cyan().bold());
+
+                match fetcher::fetch(id, lang, &config, *overwrite) {
+                    Ok(filepath) => {
+                        println!("\n{} fetched problem {}", "Successfully".green().bold(), id.blue().bold());
+                    }
+                    Err(err) => {
+                        println!("{}!\n{}: {err}", "FAILED".red().bold(), "ERR".red().bold());
+                    }
                 }
             }
             Commands::Run { problem, lang } => {

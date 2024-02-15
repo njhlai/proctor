@@ -1,0 +1,48 @@
+import bisect
+import collections
+import itertools
+import functools
+import heapq
+import math
+import operator
+import queue
+import random
+import re
+import string
+from typing import List
+from typing import Optional
+
+from collections import defaultdict
+from collections import deque
+from collections import Counter
+from collections import OrderedDict
+from functools import lru_cache
+from itertools import combinations
+from itertools import permutations
+from queue import PriorityQueue
+{% if datastructs %}
+{% for struct in datastructs -%}
+from leetcode.{{ struct | lower }} import {{ struct }}, {{ struct | camel }}From
+{% endfor -%}
+{% endif %}
+
+# >>>>>
+{{ code }}
+# <<<<<
+
+from unittest import main
+from unittest import TestCase
+
+
+class Test(TestCase):
+    def setUp(self) -> None:
+        self.solution = Solution()
+
+    def test_case_1(self) -> None:
+        # Write your test here
+
+    # More tests here
+
+
+if __name__ == "__main__":
+    main()
