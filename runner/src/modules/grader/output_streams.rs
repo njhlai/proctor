@@ -15,11 +15,6 @@ impl OutputStream {
         }
     }
 
-    /// Returns an [`OutputStream`] with stderr output of `msg`.
-    pub fn error(msg: &str) -> Self {
-        OutputStream { stdout: String::new(), stderr: String::from(msg) }
-    }
-
     /// Returns the stdout stream.
     pub fn stdout(&self) -> &str {
         self.stdout.as_str()

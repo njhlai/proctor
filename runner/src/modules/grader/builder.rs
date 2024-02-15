@@ -30,13 +30,7 @@ impl Builder {
         let output = self
             .compiler
             .arg(solfile.display().to_string())
-            .args([
-                "-o",
-                &self
-                    .binfile
-                    .to_str()
-                    .ok_or_else(|| OutputStream::error("Can't parse bin filename"))?,
-            ])
+            .args(["-o", &self.binfile.display().to_string()])
             .output()
             .unwrap_or_else(|_| panic!("Failed to compile solution to problem {}", solution.id()));
 

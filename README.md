@@ -32,7 +32,7 @@ The built binary will be `target/release/proctor`.
 
 ### Configuration
 Configure `proctor` by supplying a `config.json` file:
-```json
+```
 {
   "project_dir": "{{ PATH_TO_PROCTOR }}",
   "sol_dir": "{{ PATH_TO_SOLUTIONS_DIRECTORY }}",
@@ -50,8 +50,8 @@ Configure `proctor` by supplying a `config.json` file:
 ```
 Refer to `example_config.json` for more details on configuration for different languages and LSPs.
 
-### Setup
-Then, set up the local dev environment based at `sol_dir` for `proctor` by running:
+### Setting up `sol_dir`
+To set up the local dev environment based at `sol_dir` for `proctor`, run:
 ```sh
 proctor setup
 ```
