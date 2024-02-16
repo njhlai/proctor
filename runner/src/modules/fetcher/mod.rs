@@ -14,7 +14,7 @@ use super::config::Config;
 use super::lang::Lang;
 use super::source::Source;
 
-pub use query::{Empty, Query, QueryResponse, Response};
+pub use query::{Empty, Method, Query, QueryResponse, Response};
 
 /// Fetches and renders the question data into a solution file, of which its [`PathBuf`] is returned if successful.
 pub fn fetch(id: &str, lang: &Lang, source: &Source, config: &Config, overwrite: bool) -> Result<PathBuf, Box<dyn Error>> {

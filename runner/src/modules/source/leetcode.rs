@@ -6,7 +6,7 @@ use reqwest::blocking::Client;
 use serde::Deserialize;
 use strum::Display;
 
-use crate::modules::fetcher::{Empty, Query, QueryResponse, Response};
+use crate::modules::fetcher::{Empty, Method, Query, QueryResponse, Response};
 use crate::modules::lang::Lang;
 
 const QUESTION_DATA_QUERY: &str = r"
@@ -35,7 +35,12 @@ type QuestionDataQuery = Query<String, QueryResponse<QuestionData>>;
 
 impl QuestionDataQuery {
     fn new(title: &str) -> Self {
-        Query::from(LeetcodeURL::GraphQL.to_string(), QUESTION_DATA_QUERY, format!("{{\"titleSlug\": \"{title}\"}}"))
+        Query::from(
+            LeetcodeURL::GraphQL.to_string(),
+            Method::POST,
+            QUESTION_DATA_QUERY,
+            format!("{{\"titleSlug\": \"{title}\"}}"),
+        )
     }
 }
 
@@ -56,7 +61,7 @@ type ProblemSetQuery = Query<Empty, ProblemSet>;
 
 impl ProblemSetQuery {
     fn new() -> Self {
-        Query::from(LeetcodeURL::APIProblemsAll.to_string(), EMPTY_QUERY, Empty)
+        Query::from(LeetcodeURL::APIProblemsAll.to_string(), Method::GET, EMPTY_QUERY, Empty)
     }
 }
 

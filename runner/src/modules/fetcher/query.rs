@@ -16,9 +16,17 @@ impl std::fmt::Display for Empty {
     }
 }
 
+/// HTTP request methods.
+#[allow(clippy::upper_case_acronyms)]
+pub enum Method {
+    GET,
+    POST,
+}
+
 /// A struct which represents an API query request.
 pub struct Query<V, T> {
     url: String,
+    method: Method,
     pub query: &'static str,
     pub variable: V,
     response_type: PhantomData<T>,
@@ -26,8 +34,8 @@ pub struct Query<V, T> {
 
 impl<V: Display, T> Query<V, T> {
     /// Returns the [`Query`] formed from the given parameters.
-    pub fn from(url: String, query: &'static str, variable: V) -> Self {
-        Query { url, query, variable, response_type: PhantomData }
+    pub fn from(url: String, method: Method, query: &'static str, variable: V) -> Self {
+        Query { url, method, query, variable, response_type: PhantomData }
     }
 }
 
@@ -60,16 +68,18 @@ pub trait Response<T: Sized> {
     fn response(&self, client: &Client) -> Result<T, Box<dyn Error>>;
 }
 
-impl<V, T: DeserializeOwned> Response<T> for Query<V, T>
+impl<V: Display, T: DeserializeOwned> Response<T> for Query<V, T>
 where
     Self: Constructible,
 {
     fn response(&self, client: &Client) -> Result<T, Box<dyn Error>> {
-        Ok(client
-            .post(self.url.to_string())
-            .json(&self.json())
-            .send()?
-            .json::<T>()?)
+        Ok(match self.method {
+            Method::GET => client.get(self.url.to_string()),
+            Method::POST => client.post(self.url.to_string()),
+        }
+        .json(&self.json())
+        .send()?
+        .json::<T>()?)
     }
 }
 
