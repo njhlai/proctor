@@ -3,6 +3,7 @@ use std::process::Command;
 
 use crate::modules::config::Config;
 use crate::modules::lang::Lang;
+use crate::modules::source::Source;
 
 use super::output_streams::OutputStream;
 
@@ -15,10 +16,16 @@ pub struct Solution {
 
 impl Solution {
     /// Constructs a [`Solution`] to the problem `id`.
-    pub fn new(id: &str, lang: &Lang, config: &Config) -> Self {
+    pub fn new(id: &str, lang: &Lang, source: &Source, config: &Config) -> Self {
         let runner = lang.tester(config);
 
-        Solution { id: String::from(id), prob_dir: PathBuf::from(&config.sol_dir_str).join(id), runner }
+        Solution {
+            id: String::from(id),
+            prob_dir: PathBuf::from(&config.sol_dir_str)
+                .join(source.to_string())
+                .join(id),
+            runner,
+        }
     }
 
     /// Returns the problem ID of the [`Solution`].

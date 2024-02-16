@@ -6,9 +6,8 @@ use reqwest::blocking::Client;
 use serde::Deserialize;
 use strum::Display;
 
+use crate::modules::fetcher::{Empty, Query, QueryResponse, Response};
 use crate::modules::lang::Lang;
-
-use super::query::{Empty, Query, QueryResponse, Response};
 
 const QUESTION_DATA_QUERY: &str = r"
 query getQuestionDetail($titleSlug: String!) {

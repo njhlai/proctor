@@ -1,4 +1,3 @@
-mod leetcode;
 #[allow(clippy::module_name_repetitions)]
 mod query;
 
@@ -13,11 +12,18 @@ use tera::{Context, Tera, Value};
 use super::colorize::MoreColorize;
 use super::config::Config;
 use super::lang::Lang;
+use super::source::Source;
+
+pub use query::{Empty, Query, QueryResponse, Response};
 
 /// Fetches and renders the question data into a solution file, of which its [`PathBuf`] is returned if successful.
-pub fn fetch(id: &str, lang: &Lang, config: &Config, overwrite: bool) -> Result<PathBuf, Box<dyn Error>> {
-    let (file, dirpath) = (format!("sol.{lang}"), PathBuf::from(&config.sol_dir_str).join(id));
+pub fn fetch(id: &str, lang: &Lang, source: &Source, config: &Config, overwrite: bool) -> Result<PathBuf, Box<dyn Error>> {
+    let dirpath = PathBuf::from(&config.sol_dir_str)
+        .join(source.to_string())
+        .join(id);
     fs::create_dir_all(&dirpath)?;
+
+    let file = format!("sol.{lang}");
     let filepath = dirpath.join(&file);
 
     if overwrite || !filepath.exists() {
@@ -39,8 +45,8 @@ pub fn fetch(id: &str, lang: &Lang, config: &Config, overwrite: bool) -> Result<
         });
 
         let mut context = Context::new();
-        context.insert("code", &leetcode::query(id, lang)?);
-        context.insert("datastructs", &Vec::<&str>::from([]));
+        context.insert("code", &source.query(id, lang)?);
+        context.insert("datastructs", &Vec::<(Source, &str)>::from([]));
 
         print!("Rendering {}... ", filepath.display().to_string().orange().bold());
         io::stdout().flush()?;

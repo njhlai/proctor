@@ -8,13 +8,14 @@ use colored::Colorize;
 
 use super::config::Config;
 use super::lang::Lang;
+use super::source::Source;
 
 use self::builder::Builder;
 use self::solution::Solution;
 
-pub fn run(id: &str, lang: &Lang, config: &Config) {
+pub fn run(id: &str, lang: &Lang, source: &Source, config: &Config) {
     let mut builder = Builder::new(lang, config);
-    let mut solution = Solution::new(id, lang, config);
+    let mut solution = Solution::new(id, lang, source, config);
 
     print!("Compiling solution to problem {}... ", solution.id().blue());
     io::stdout().flush().unwrap();

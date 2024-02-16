@@ -1,6 +1,6 @@
 {% if datastructs -%}
 {% for struct in datastructs -%}
-use libproctor::leetcode::{{ struct }};
+use libproctor::{{ struct.0 }}::{{ struct.1 }};
 {% endfor %}
 {% endif -%}
 struct Solution;

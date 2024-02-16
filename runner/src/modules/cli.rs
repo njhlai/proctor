@@ -9,6 +9,7 @@ use super::dev_env;
 use super::fetcher;
 use super::grader;
 use super::lang::Lang;
+use super::source::Source;
 
 const LEETCODE_MAX_PROBLEM_ID: i64 = 3023;
 
@@ -30,7 +31,7 @@ pub struct Cli {
 enum Commands {
     /// Setups the dev environment
     Setup {
-        /// Overwrite existing files
+        /// Overwrite existing dev environment setup
         #[arg(long)]
         overwrite: bool,
     },
@@ -38,23 +39,31 @@ enum Commands {
     Fetch {
         /// Problem ID
         #[arg(value_parser = clap::value_parser!(u16).range(1..=LEETCODE_MAX_PROBLEM_ID))]
-        problem: u16,
+        id: u16,
 
         /// Code language to fetch problem
         lang: Lang,
 
-        /// Overwrite existing files
+        /// Overwrite existing solution
         #[arg(long)]
         overwrite: bool,
+
+        /// Source of problem
+        #[arg(default_value_t = Source::LeetCode)]
+        source: Source,
     },
-    /// Compile and test solution to <PROBLEM>
+    /// Compile and test solution
     Run {
         /// Problem ID
         #[arg(value_parser = clap::value_parser!(u16).range(1..=LEETCODE_MAX_PROBLEM_ID))]
-        problem: u16,
+        id: u16,
 
         /// Code language to compile and test in
         lang: Lang,
+
+        /// Source of problem
+        #[arg(default_value_t = Source::LeetCode)]
+        source: Source,
     },
 }
 
@@ -100,12 +109,12 @@ impl Cli {
                     );
                 }
             }
-            Commands::Fetch { problem, lang, overwrite } => {
-                let id = &format!("{problem:0>4}");
+            Commands::Fetch { id, lang, overwrite, source } => {
+                let id = &format!("{id:0>4}");
 
                 println!("Fetching problem {} in {}:", id.blue().bold(), lang.get_name().cyan().bold());
 
-                match fetcher::fetch(id, lang, &config, *overwrite) {
+                match fetcher::fetch(id, lang, source, &config, *overwrite) {
                     Ok(filepath) => {
                         println!("\n{} fetched problem {}", "Successfully".green().bold(), id.blue().bold());
                     }
@@ -114,12 +123,12 @@ impl Cli {
                     }
                 }
             }
-            Commands::Run { problem, lang } => {
-                let id = &format!("{problem:0>4}");
+            Commands::Run { id, lang, source } => {
+                let id = &format!("{id:0>4}");
 
                 println!("Proctoring {} solution to problem {}:", lang.get_name().cyan().bold(), id.blue().bold());
 
-                grader::run(id, lang, &config);
+                grader::run(id, lang, source, &config);
             }
         }
     }

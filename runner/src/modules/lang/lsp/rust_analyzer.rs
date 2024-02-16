@@ -5,10 +5,12 @@ use std::{fs, io};
 
 use colored::Colorize;
 use serde::Serialize;
+use strum::IntoEnumIterator;
 
 use crate::modules::config::Config;
 use crate::modules::dev_env::Setup;
 use crate::modules::lang::Lang;
+use crate::modules::source::Source;
 
 use super::Lsp;
 
@@ -108,9 +110,13 @@ impl RustAnalyzer {
 
     /// Parses and adds qualifying directory under `sol_dir` as a [`Crate`] into [`RustAnalyzer`].
     fn parse_directory_as_crates(&mut self, sol_dir: &Path) -> io::Result<()> {
-        for entry in fs::read_dir(sol_dir)? {
-            self.cratify(entry?.path().as_path());
-        }
+        Source::iter().try_for_each(|source| {
+            for entry in fs::read_dir(sol_dir.join(source.to_string()))? {
+                self.cratify(entry?.path().as_path());
+            }
+
+            Ok::<(), io::Error>(())
+        })?;
 
         self.crates[1..].sort_unstable_by(|a, b| a.root_module.cmp(&b.root_module));
 

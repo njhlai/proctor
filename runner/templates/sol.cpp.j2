@@ -2,7 +2,7 @@
 #include <leetcode/includes.h>
 {% if datastructs -%}
 {% for struct in datastructs -%}
-#include <leetcode/{{ struct | lower }}.h>
+#include <{{ struct.0 }}/{{ struct.1 | lower }}.h>
 {% endfor -%}
 {% endif %}
 using namespace std;
