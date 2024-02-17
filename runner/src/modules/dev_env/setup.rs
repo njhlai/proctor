@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
@@ -51,6 +52,18 @@ impl Setup {
         }
 
         Ok(())
+    }
+
+    pub fn run(&self, additional_command: Option<Command>, overwrite: bool) -> Result<(), Box<dyn Error>> {
+        Ok(self.write(overwrite).and_then(|()| {
+            if let Some(mut cmd) = additional_command {
+                println!("  {} Running additional commands for {}...", "*".dimmed(), self.lang.get_name().cyan().bold());
+
+                cmd.output().map(|_| ())
+            } else {
+                Ok(())
+            }
+        })?)
     }
 }
 

@@ -6,7 +6,7 @@ use std::process::Command;
 use strum::{Display, EnumCount, EnumIter, EnumProperty, EnumString};
 
 use super::config::Config;
-use super::dev_env::Setups;
+use super::dev_env::{Setup, Setups};
 
 use self::lsp::Lsp;
 
@@ -98,16 +98,19 @@ impl Lang {
             }
         }
     }
+
+    pub fn generate_setup(&self, config: &Config) -> Result<(Setup, Option<Command>), Box<dyn Error>> {
+        match self {
+            Lang::Cpp => lsp::Clangd::from(config).generate_setup(config),
+            Lang::Python => lsp::Pyright::from(config).generate_setup(config),
+            Lang::Rust => lsp::RustAnalyzer::from(config).generate_setup(config),
+        }
+    }
 }
 
 impl LangIter {
     /// Generates [`Setups`] detailing the setups for all available languages.
     pub fn generate_setups(self, config: &Config) -> Result<Setups, Box<dyn Error>> {
-        self.map(|lang| match lang {
-            Lang::Cpp => lsp::Clangd::from(config).generate_setup(config),
-            Lang::Python => lsp::Pyright::from(config).generate_setup(config),
-            Lang::Rust => lsp::RustAnalyzer::from(config).generate_setup(config),
-        })
-        .collect()
+        self.map(|lang| lang.generate_setup(config)).collect()
     }
 }

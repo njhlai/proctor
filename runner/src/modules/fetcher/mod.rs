@@ -25,8 +25,9 @@ pub fn fetch(id: &str, lang: &Lang, source: &Source, config: &Config, overwrite:
 
     let file = format!("sol.{lang}");
     let filepath = dirpath.join(&file);
+    let filepath_already_exists = filepath.exists();
 
-    if overwrite || !filepath.exists() {
+    if overwrite || !filepath_already_exists {
         let template_name = format!("{}.j2", &file);
 
         let mut template = Tera::default();
@@ -55,6 +56,18 @@ pub fn fetch(id: &str, lang: &Lang, source: &Source, config: &Config, overwrite:
         println!("{}!", "OK".green().bold());
 
         fs::write(&filepath, code)?;
+
+        if !filepath_already_exists && lang == &Lang::Rust {
+            println!(
+                "Updating {}:",
+                format!("{}/rust-project.json", &config.sol_dir_str)
+                    .orange()
+                    .bold()
+            );
+
+            lang.generate_setup(config)
+                .and_then(|(setup, additional_command)| setup.run(additional_command, true))?;
+        }
     } else {
         println!("{} exists, skipping", filepath.display().to_string().orange().bold());
     }
