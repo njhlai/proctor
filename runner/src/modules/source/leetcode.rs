@@ -82,7 +82,7 @@ struct Stat {
     question__title_slug: String,
 }
 
-pub fn query(id: &str, lang: &Lang) -> Result<String, Box<dyn Error>> {
+pub fn query(id: &str, lang: &Lang) -> Result<Option<String>, Box<dyn Error>> {
     let usize_id = id.parse::<usize>()?;
 
     let client = Client::new();
@@ -112,7 +112,5 @@ pub fn query(id: &str, lang: &Lang) -> Result<String, Box<dyn Error>> {
         .code_snippets
         .into_iter()
         .find(|q| q.lang == lang.get_name())
-        .unwrap()
-        .code
-        .clone())
+        .map(|q| q.code.clone()))
 }
