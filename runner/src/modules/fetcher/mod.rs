@@ -17,17 +17,29 @@ use super::source::Source;
 pub use query::{Empty, Method, Query, QueryResponse, Response};
 
 /// Fetches and renders the question data into a solution file, of which its [`PathBuf`] is returned if successful.
-pub fn fetch(id: &str, lang: &Lang, source: &Source, config: &Config, overwrite: bool) -> Result<PathBuf, Box<dyn Error>> {
+pub fn fetch(
+    id: &str, lang: &Lang, source: &Source, config: &Config, overwrite: bool,
+) -> Result<(PathBuf, PathBuf), Box<dyn Error>> {
     let dirpath = PathBuf::from(&config.sol_dir_str)
         .join(source.to_string())
         .join(id);
     fs::create_dir_all(&dirpath)?;
 
     let file = format!("sol.{lang}");
-    let filepath = dirpath.join(&file);
-    let filepath_already_exists = filepath.exists();
+    let (sol_file, desc_file) = (dirpath.join(&file), dirpath.join("desc.md"));
+    let sol_file_already_exists = sol_file.exists();
 
-    if overwrite || !filepath_already_exists {
+    if overwrite || !sol_file_already_exists {
+        let (desc, code) = source.query(id, lang)?;
+
+        if overwrite || !desc_file.exists() {
+            print!("Generating {}... ", desc_file.display().to_string().orange().bold());
+            io::stdout().flush()?;
+
+            fs::write(&desc_file, desc)?;
+            println!("{}!", "OK".green().bold());
+        }
+
         let template_name = format!("{}.j2", &file);
 
         let mut template = Tera::default();
@@ -46,18 +58,18 @@ pub fn fetch(id: &str, lang: &Lang, source: &Source, config: &Config, overwrite:
         });
 
         let mut context = Context::new();
-        context.insert("code", &source.query(id, lang)?);
+        context.insert("code", &code);
         context.insert("datastructs", &Vec::<(Source, &str)>::from([]));
 
-        print!("Rendering {}... ", filepath.display().to_string().orange().bold());
+        print!("Rendering {}... ", sol_file.display().to_string().orange().bold());
         io::stdout().flush()?;
 
         let code = template.render(&template_name, &context)?;
         println!("{}!", "OK".green().bold());
 
-        fs::write(&filepath, code)?;
+        fs::write(&sol_file, code)?;
 
-        if !filepath_already_exists && lang == &Lang::Rust {
+        if !sol_file_already_exists && lang == &Lang::Rust {
             println!(
                 "Updating {}:",
                 format!("{}/rust-project.json", &config.sol_dir_str)
@@ -69,14 +81,14 @@ pub fn fetch(id: &str, lang: &Lang, source: &Source, config: &Config, overwrite:
                 .and_then(|(setup, additional_command)| setup.run(additional_command, true))?;
         }
     } else {
-        println!("{} exists, skipping", filepath.display().to_string().orange().bold());
+        println!("{} exists, skipping", sol_file.display().to_string().orange().bold());
     }
 
     println!(
         "{} code for problem {} rendered as {}",
         lang.get_name().cyan().bold(),
         id.blue().bold(),
-        filepath.display().to_string().orange().bold()
+        sol_file.display().to_string().orange().bold()
     );
-    Ok(filepath)
+    Ok((sol_file, desc_file))
 }

@@ -13,6 +13,7 @@ const QUESTION_DATA_QUERY: &str = r"
 query getQuestionDetail($titleSlug: String!) {
   obj: question(titleSlug: $titleSlug) {
     questionFrontendId
+    content
     codeSnippets {
       lang
       langSlug
@@ -48,6 +49,7 @@ impl QuestionDataQuery {
 #[serde(rename_all = "camelCase")]
 struct QuestionData {
     question_frontend_id: String,
+    content: String,
     code_snippets: Vec<CodeSnippetJson>,
 }
 
@@ -82,7 +84,7 @@ struct Stat {
     question__title_slug: String,
 }
 
-pub fn query(id: &str, lang: &Lang) -> Result<Option<String>, Box<dyn Error>> {
+pub fn query(id: &str, lang: &Lang) -> Result<(String, Option<String>), Box<dyn Error>> {
     let usize_id = id.parse::<usize>()?;
 
     let client = Client::new();
@@ -108,9 +110,12 @@ pub fn query(id: &str, lang: &Lang) -> Result<Option<String>, Box<dyn Error>> {
     assert!(format!("{:0>4}", question.question_frontend_id) == id);
     println!("{}!", "OK".green().bold());
 
-    Ok(question
-        .code_snippets
-        .into_iter()
-        .find(|q| q.lang == lang.get_name())
-        .map(|q| q.code.clone()))
+    Ok((
+        question.content,
+        question
+            .code_snippets
+            .into_iter()
+            .find(|q| q.lang == lang.get_name())
+            .map(|q| q.code.clone()),
+    ))
 }

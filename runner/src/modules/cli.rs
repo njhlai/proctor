@@ -115,7 +115,7 @@ impl Cli {
                 println!("Fetching problem {} in {}:", id.blue().bold(), lang.get_name().cyan().bold());
 
                 match fetcher::fetch(id, lang, source, &config, *overwrite) {
-                    Ok(filepath) => {
+                    Ok((sol_file, desc_file)) => {
                         println!("\n{} fetched problem {}", "Successfully".green().bold(), id.blue().bold());
                     }
                     Err(err) => {
