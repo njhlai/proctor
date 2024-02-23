@@ -1,12 +1,14 @@
 #[allow(clippy::module_name_repetitions)]
 mod query;
 
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::io::{self, Write};
 use std::path::PathBuf;
 
 use colored::Colorize;
+use html2md::{Handle, StructuredPrinter, TagHandler, TagHandlerFactory};
 use tera::{Context, Tera, Value};
 
 use super::colorize::MoreColorize;
@@ -15,6 +17,33 @@ use super::lang::Lang;
 use super::source::Source;
 
 pub use query::{Empty, Method, Query, QueryResponse, Response};
+
+/// Parses `html` into Markdown.
+fn render_desc(html: &str) -> String {
+    struct SupTagFactory;
+    impl TagHandlerFactory for SupTagFactory {
+        fn instantiate(&self) -> Box<dyn TagHandler> {
+            Box::<SupTagHandler>::default()
+        }
+    }
+
+    #[derive(Default)]
+    struct SupTagHandler;
+    impl TagHandler for SupTagHandler {
+        fn handle(&mut self, _tag: &Handle, printer: &mut StructuredPrinter) {
+            printer.append_str("^{");
+        }
+
+        fn after_handle(&mut self, printer: &mut StructuredPrinter) {
+            printer.append_str("}");
+        }
+    }
+
+    let mut custom = HashMap::<String, Box<dyn TagHandlerFactory>>::new();
+    custom.insert(String::from("sup"), Box::new(SupTagFactory));
+
+    html2md::parse_html_custom(html, &custom)
+}
 
 /// Fetches and renders the question data into a solution file, of which its [`PathBuf`] is returned if successful.
 pub fn fetch(
@@ -33,10 +62,10 @@ pub fn fetch(
         let (desc, code) = source.query(id, lang)?;
 
         if overwrite || !desc_file.exists() {
-            print!("Generating {}... ", desc_file.display().to_string().orange().bold());
+            print!("Rendering {}... ", desc_file.display().to_string().orange().bold());
             io::stdout().flush()?;
 
-            fs::write(&desc_file, desc)?;
+            fs::write(&desc_file, render_desc(&desc))?;
             println!("{}!", "OK".green().bold());
         }
 
