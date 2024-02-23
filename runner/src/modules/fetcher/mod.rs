@@ -45,6 +45,30 @@ fn render_desc(html: &str) -> String {
     html2md::parse_html_custom(html, &custom)
 }
 
+/// Renders `code` using the Jinja template `template_name`.
+fn render_problem(config: &Config, template_name: &str, code: &Option<String>) -> Result<String, Box<dyn Error>> {
+    let mut template = Tera::default();
+    template.add_template_file(
+        PathBuf::from(&config.project_dir_str).join(format!("runner/templates/{template_name}")),
+        Some(template_name),
+    )?;
+    template.register_filter("camel", |value: &Value, _: &_| {
+        let s = tera::try_get_value!("camel", "value", String, value);
+
+        let mut it = s.chars();
+        Ok(tera::to_value(match it.next() {
+            None => String::new(),
+            Some(c) => c.to_lowercase().collect::<String>() + it.as_str(),
+        })?)
+    });
+
+    let mut context = Context::new();
+    context.insert("code", &code);
+    context.insert("datastructs", &Vec::<(Source, &str)>::from([]));
+
+    Ok(template.render(template_name, &context)?)
+}
+
 /// Fetches and renders the question data into a solution file, of which its [`PathBuf`] is returned if successful.
 pub fn fetch(
     id: &str, lang: &Lang, source: &Source, config: &Config, overwrite: bool,
@@ -69,34 +93,12 @@ pub fn fetch(
             println!("{}!", "OK".green().bold());
         }
 
-        let template_name = format!("{}.j2", &file);
-
-        let mut template = Tera::default();
-        template.add_template_file(
-            PathBuf::from(&config.project_dir_str).join(format!("runner/templates/{template_name}")),
-            Some(&template_name),
-        )?;
-        template.register_filter("camel", |value: &Value, _: &_| {
-            let s = tera::try_get_value!("camel", "value", String, value);
-
-            let mut it = s.chars();
-            Ok(tera::to_value(match it.next() {
-                None => String::new(),
-                Some(c) => c.to_lowercase().collect::<String>() + it.as_str(),
-            })?)
-        });
-
-        let mut context = Context::new();
-        context.insert("code", &code);
-        context.insert("datastructs", &Vec::<(Source, &str)>::from([]));
-
         print!("Rendering {}... ", sol_file.display().to_string().orange().bold());
         io::stdout().flush()?;
 
-        let code = template.render(&template_name, &context)?;
+        let template_name = format!("{}.j2", &file);
+        fs::write(&sol_file, render_problem(config, &template_name, &code)?)?;
         println!("{}!", "OK".green().bold());
-
-        fs::write(&sol_file, code)?;
 
         if !sol_file_already_exists && lang == &Lang::Rust {
             println!(
