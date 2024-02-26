@@ -99,6 +99,7 @@ impl Lang {
         }
     }
 
+    /// Generates the pair of [`Setup`] and additional commands to run for the language's setup.
     pub fn generate_setup(&self, config: &Config) -> Result<(Setup, Option<Command>), Box<dyn Error>> {
         match self {
             Lang::Cpp => lsp::Clangd::from(config).generate_setup(config),

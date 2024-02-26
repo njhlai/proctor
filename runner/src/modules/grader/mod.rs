@@ -13,6 +13,7 @@ use super::source::Source;
 use self::builder::Builder;
 use self::solution::Solution;
 
+/// Compiles and tests the solution.
 pub fn run(id: &str, lang: &Lang, source: &Source, config: &Config) {
     let mut builder = Builder::new(lang, config);
     let mut solution = Solution::new(id, lang, source, config);

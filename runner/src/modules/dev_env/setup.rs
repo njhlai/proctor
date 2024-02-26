@@ -54,6 +54,7 @@ impl Setup {
         Ok(())
     }
 
+    /// Runs the setup defined by [`Setup`] as well as any additional commands.
     pub fn run(&self, additional_command: Option<Command>, overwrite: bool) -> Result<(), Box<dyn Error>> {
         Ok(self.write(overwrite).and_then(|()| {
             if let Some(mut cmd) = additional_command {
