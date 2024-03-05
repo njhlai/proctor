@@ -66,7 +66,7 @@ To install the language-specific libraries for coding problems, compile each lan
 * `Python`:
     ```sh
     source [PATH_TO_SOLUTIONS_DIRECTORY]/venv/py311/bin/activate
-    pip install -e lib/cpp/py
+    pip install -e lib/py
     ```
 * `Rust`:
     ```sh
