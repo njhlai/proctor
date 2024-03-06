@@ -6,7 +6,7 @@ use reqwest::blocking::Client;
 use serde::Deserialize;
 use strum::Display;
 
-use crate::modules::fetcher::{Empty, Method, Query, QueryResponse, Response};
+use crate::modules::fetcher::{Empty, GraphQLResponse, Method, Request, Response};
 use crate::modules::lang::Lang;
 
 const QUESTION_DATA_QUERY: &str = r"
@@ -32,11 +32,11 @@ enum LeetcodeURL {
     APIProblemsAll,
 }
 
-type QuestionDataQuery = Query<String, QueryResponse<QuestionData>>;
+type QuestionDataQuery = Request<String, GraphQLResponse<QuestionData>>;
 
 impl QuestionDataQuery {
     fn new(title: &str) -> Self {
-        Query::from(
+        Request::from(
             LeetcodeURL::GraphQL.to_string(),
             Method::POST,
             QUESTION_DATA_QUERY,
@@ -59,11 +59,11 @@ struct CodeSnippetJson {
     code: String,
 }
 
-type ProblemSetQuery = Query<Empty, ProblemSet>;
+type ProblemSetQuery = Request<Empty, ProblemSet>;
 
 impl ProblemSetQuery {
     fn new() -> Self {
-        Query::from(LeetcodeURL::APIProblemsAll.to_string(), Method::GET, EMPTY_QUERY, Empty)
+        Request::from(LeetcodeURL::APIProblemsAll.to_string(), Method::GET, EMPTY_QUERY, Empty)
     }
 }
 

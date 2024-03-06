@@ -1,5 +1,5 @@
 #[allow(clippy::module_name_repetitions)]
-mod query;
+mod request;
 
 use std::collections::HashMap;
 use std::error::Error;
@@ -16,7 +16,7 @@ use super::config::Config;
 use super::lang::Lang;
 use super::source::Source;
 
-pub use query::{Empty, Method, Query, QueryResponse, Response};
+pub use request::{Empty, GraphQLResponse, Method, Request, Response};
 
 /// Parses `html` into Markdown.
 fn render_desc(html: &str) -> String {

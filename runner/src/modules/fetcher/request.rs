@@ -24,7 +24,7 @@ pub enum Method {
 }
 
 /// A struct which represents an API query request.
-pub struct Query<V, T> {
+pub struct Request<V, T> {
     url: String,
     method: Method,
     pub query: &'static str,
@@ -32,10 +32,10 @@ pub struct Query<V, T> {
     response_type: PhantomData<T>,
 }
 
-impl<V: Display, T> Query<V, T> {
-    /// Returns the [`Query`] formed from the given parameters.
+impl<V: Display, T> Request<V, T> {
+    /// Returns the [`Request`] formed from the given parameters.
     pub fn from(url: String, method: Method, query: &'static str, variable: V) -> Self {
-        Query { url, method, query, variable, response_type: PhantomData }
+        Request { url, method, query, variable, response_type: PhantomData }
     }
 }
 
@@ -45,7 +45,7 @@ trait Constructible {
     fn json(&self) -> HashMap<&str, String>;
 }
 
-impl<V: Display, T> Constructible for Query<V, T> {
+impl<V: Display, T> Constructible for Request<V, T> {
     fn json(&self) -> HashMap<&str, String> {
         let mut json = HashMap::new();
 
@@ -68,7 +68,7 @@ pub trait Response<T: Sized> {
     fn response(&self, client: &Client) -> Result<T, Box<dyn Error>>;
 }
 
-impl<V: Display, T: DeserializeOwned> Response<T> for Query<V, T>
+impl<V: Display, T: DeserializeOwned> Response<T> for Request<V, T>
 where
     Self: Constructible,
 {
@@ -83,9 +83,9 @@ where
     }
 }
 
-/// A struct for a response from an execution of [`Query`].
+/// A wrapper struct for a response from an execution of [`Request`] of type GraphQL.
 #[derive(Debug, Deserialize)]
-pub struct QueryResponse<T: for<'a> Deserialize<'a>> {
+pub struct GraphQLResponse<T: for<'a> Deserialize<'a>> {
     #[serde(deserialize_with = "denest")]
     pub data: T,
 }
