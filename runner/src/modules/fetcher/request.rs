@@ -3,7 +3,9 @@ use std::error::Error;
 use std::fmt::Display;
 use std::marker::PhantomData;
 
+use colored::Colorize;
 use reqwest::blocking::Client;
+use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer};
 
@@ -73,13 +75,20 @@ where
     Self: Constructible,
 {
     fn response(&self, client: &Client) -> Result<T, Box<dyn Error>> {
-        Ok(match self.method {
+        match match self.method {
             Method::GET => client.get(self.url.to_string()),
             Method::POST => client.post(self.url.to_string()),
         }
+        .header("User-Agent", "rust")
         .json(&self.json())
-        .send()?
-        .json::<T>()?)
+        .send()
+        {
+            Ok(response) => match response.status() {
+                StatusCode::OK => Ok(response.json::<T>()?),
+                s => Err(format!("Request failed with code {}:\n{response:#?}", s.as_str().yellow().bold()).into()),
+            },
+            Err(e) => Err(Box::new(e)),
+        }
     }
 }
 
