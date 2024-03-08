@@ -12,11 +12,33 @@ struct Solution;
 #[cfg(test)]
 mod tests {
     use super::*;
+    {%- if examples -%}
+    {% for example in examples %}
 
     #[test]
-    fn case_1() {
-        // Write your test here
-    }
+    fn case_{{ loop.index }}() {
+        let {% if variables | length > 1 %}({% endif -%}
+        {% for variable in variables -%}
+        {{ variable.0 }}{% if not loop.last %}, {% endif -%}
+        {% endfor -%}
+        {% if variables | length > 1 %}){% endif %} = {% if variables | length > 1 %}({% endif -%}
+        {% for e in example -%}
+        {{ e }}{% if not loop.last %}, {% endif -%}
+        {% endfor -%}
+        {% if variables | length > 1 %}){% endif %};
+        let info_msg = format!("Input: {% for variable in variables -%}
+        {{ variable.0 }} = {:?}{% if not loop.last %}, {% endif -%}
+        {% endfor %}", {% for variable in variables -%}
+        {{ variable.0 }}{% if not loop.last %}, {% endif -%}
+        {% endfor %});
+        let expected_output = ; // fill in expected result here
 
-    // More tests here
+        let output = Solution::{{ function }}({% for variable in variables -%}
+        {{ variable.0 }}{% if not loop.last %}, {% endif -%}
+        {% endfor %});
+
+        assert_eq!(output, expected_output, "{}", info_msg);
+    }
+    {%- endfor %}
+    {%- endif %}
 }

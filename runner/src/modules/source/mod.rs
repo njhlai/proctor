@@ -18,7 +18,7 @@ pub enum Source {
 
 impl Source {
     /// Returns the result of querying data associated to problem `id` in language `lang`.
-    pub fn query(&self, id: &str, lang: &Lang) -> Result<(String, Option<String>), Box<dyn Error>> {
+    pub fn query(&self, id: &str, lang: &Lang) -> Result<(String, Option<String>, String), Box<dyn Error>> {
         match self {
             Source::LeetCode => leetcode::query(id, lang),
         }

@@ -32,6 +32,24 @@ impl Lang {
         self.get_str("name").unwrap()
     }
 
+    /// Get regex for parsing function.
+    pub fn function_regex(&self) -> &'static str {
+        match self {
+            Lang::Cpp => r"(?<return>.+) (?<function>\w+)\((?<params>.+)\) \{",
+            Lang::Python => r"def (?<function>\w+)\((?<params>.+)\)(?: -> (?<return>.+)):",
+            Lang::Rust => r"pub fn (?<function>\w+)\((?<params>.+)\)(?: -> (?<return>.+)) \{",
+        }
+    }
+
+    /// Get regex for parsing variables.
+    pub fn variables_regex(&self) -> &'static str {
+        match self {
+            Lang::Cpp => r"(?<type>.*?)[&*] (?<variable>\w+)(?:, )?",
+            Lang::Python => r", (?<variable>\w+): (?<type>[\w\[\]]+)",
+            Lang::Rust => r"(?<variable>\w+): &?(?:mut )?(?<type>.*?)(?:, |$)",
+        }
+    }
+
     /// Returns the [`Command`] that executes the solution-testing `binfile`.
     pub fn tester(&self, config: &Config) -> Command {
         let binfile = config.binfile(&self.to_string());

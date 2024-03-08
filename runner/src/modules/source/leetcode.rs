@@ -19,6 +19,7 @@ query getQuestionDetail($titleSlug: String!) {
       langSlug
       code
     }
+    exampleTestcases
   }
 }
 ";
@@ -51,6 +52,7 @@ struct QuestionData {
     question_frontend_id: String,
     content: String,
     code_snippets: Vec<CodeSnippetJson>,
+    example_testcases: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -84,7 +86,7 @@ struct Stat {
     question__title_slug: String,
 }
 
-pub fn query(id: &str, lang: &Lang) -> Result<(String, Option<String>), Box<dyn Error>> {
+pub fn query(id: &str, lang: &Lang) -> Result<(String, Option<String>, String), Box<dyn Error>> {
     let usize_id = id.parse::<usize>()?;
 
     let client = Client::new();
@@ -117,5 +119,6 @@ pub fn query(id: &str, lang: &Lang) -> Result<(String, Option<String>), Box<dyn 
             .into_iter()
             .find(|q| q.lang == lang.get_name())
             .map(|q| q.code.clone()),
+        question.example_testcases,
     ))
 }

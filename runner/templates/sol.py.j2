@@ -23,25 +23,40 @@ from queue import PriorityQueue
 {% if datastructs %}
 {% for struct in datastructs -%}
 from {{ struct.0 }}.{{ struct.1 | lower }} import {{ struct.1 }}, {{ struct.1 | camel }}From
-{% endfor -%}
-{% endif %}
+{% endfor %}
+{%- endif %}
 
 # >>>>>
 {{ code }}
 # <<<<<
 
-from unittest import main
-from unittest import TestCase
+from unittest import main  # noqa: E402
+from unittest import TestCase  # noqa: E402
 
 
 class Test(TestCase):
     def setUp(self) -> None:
         self.solution = Solution()
+    {%- if examples -%}
+    {% for example in examples %}
 
-    def test_case_1(self) -> None:
-        # Write your test here
+    def test_case_{{ loop.index }}(self) -> None:
+        {% for variable in variables -%}
+        {{ variable.0 }}{% if not loop.last %}, {% endif -%}
+        {% endfor %} = {% for e in example -%}
+        {{ e }}{% if not loop.last %}, {% endif -%}
+        {% endfor %}
+        expectedOutput = # fill in expected result here
 
-    # More tests here
+        output = self.solution.{{ function }}({% for variable in variables -%}
+        {{ variable.0 }}{% if not loop.last %}, {% endif -%}
+        {% endfor %})
+
+        self.assertEqual(output, expectedOutput, f"\nInput: {% for variable in variables -%}
+        {{ variable.0 }} = {% raw %}{{% endraw %}{{ variable.0 }}{% raw %}}{% endraw %}{% if not loop.last %}, {% endif -%}
+        {% endfor %}")
+    {%- endfor %}
+    {%- endif %}
 
 
 if __name__ == "__main__":

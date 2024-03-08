@@ -3,8 +3,8 @@
 {% if datastructs -%}
 {% for struct in datastructs -%}
 #include <{{ struct.0 }}/{{ struct.1 | lower }}.h>
-{% endfor -%}
-{% endif %}
+{% endfor %}
+{%- endif %}
 using namespace std;
 
 //>>>>>
@@ -14,9 +14,24 @@ using namespace std;
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define DOCTEST_CONFIG_SUPER_FAST_ASSERTS
 #include <doctest/doctest.h>
+{%- if examples -%}
+{% for example in examples %}
 
-TEST_CASE("Case 1") {
-    // Write your test here
+TEST_CASE("Case {{ loop.index }}") {
+    {% for variable in variables -%}{{ variable.1 }} {{ variable.0 }}({{ example | nth(n=loop.index0) }}); {% endfor %}
+    {% if return != "void" %}{{ return | trim }} {% endif %}expectedOutput = ; // fill in expected result here
+
+    Solution sol;
+    {% if return != "void" %}{{ return | trim }} {% endif %}output = sol.{{ function }}({% for variable in variables -%}
+    {{ variable.0 }}{% if not loop.last %}, {% endif -%}
+    {% endfor %});
+
+    INFO("Input: {% for variable in variables -%}
+    {{ variable.0 }} = " << {{ variable.0 }}{% if not loop.last %} << ", {% endif -%}
+    {% endfor %});
+    CHECK(output == expectedOutput);
+
+    // Destroy pointers here.
 }
-
-// More tests here
+{%- endfor %}
+{%- endif %}
