@@ -9,6 +9,9 @@ use strum::Display;
 use crate::modules::fetcher::{GraphQLResponse, Method, Request, Response};
 use crate::modules::lang::Lang;
 
+use super::metadata::MetaData;
+use super::QuestionDetails;
+
 const QUESTION_LIST_QUERY: &str = r#"
 query questionList($skip: Int) {
   obj: questionList(
@@ -20,6 +23,7 @@ query questionList($skip: Int) {
     questions: data {
       questionFrontendId
       content
+      metaData
       codeSnippets {
         lang
         langSlug
@@ -60,6 +64,7 @@ struct QuestionList {
 struct QuestionData {
     question_frontend_id: String,
     content: String,
+    meta_data: String,
     code_snippets: Vec<CodeSnippetJson>,
     example_testcases: String,
 }
@@ -70,15 +75,13 @@ struct CodeSnippetJson {
     code: String,
 }
 
-pub fn query(id: &str, lang: &Lang) -> Result<(String, Option<String>, String), Box<dyn Error>> {
-    let usize_id = id.parse::<usize>()?;
-
+pub fn query(id: &str, lang: &Lang) -> Result<QuestionDetails, Box<dyn Error>> {
     let client = Client::new();
 
     print!("Querying question data for problem {}... ", id.cyan().bold());
     io::stdout().flush()?;
 
-    let question = &QuestionDataQuery::new(usize_id.saturating_sub(1))
+    let question = &QuestionDataQuery::new(id.parse::<usize>()?.saturating_sub(1))
         .response(&client)?
         .data
         .questions[0];
@@ -93,6 +96,7 @@ pub fn query(id: &str, lang: &Lang) -> Result<(String, Option<String>, String), 
             .iter()
             .find(|q| q.lang == lang.get_name())
             .map(|q| q.code.clone()),
+        MetaData::from(&question.meta_data, lang)?,
         question.example_testcases.clone(),
     ))
 }

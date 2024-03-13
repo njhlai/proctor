@@ -9,18 +9,14 @@ use std::path::PathBuf;
 
 use colored::Colorize;
 use html2md::{Handle, StructuredPrinter, TagHandler, TagHandlerFactory};
-use regex::Regex;
 use tera::{Context, Tera, Value};
 
 use super::colorize::MoreColorize;
 use super::config::Config;
 use super::lang::Lang;
-use super::source::Source;
+use super::source::{MetaData, Source};
 
 pub use request::{GraphQLResponse, Method, Request, Response};
-
-/// An alias to a tuple detailing function information.
-type FunctionDetails = (String, String, Vec<(String, String)>);
 
 /// Parses `html` into Markdown.
 fn render_desc(html: &str) -> String {
@@ -51,7 +47,7 @@ fn render_desc(html: &str) -> String {
 
 /// Renders `code` using the Jinja template `template_name`.
 fn render_problem(
-    config: &Config, template_name: &str, code: &Option<String>, function_details: &FunctionDetails, examples: &str,
+    config: &Config, template_name: &str, code: &Option<String>, metadata: &MetaData, examples: &str,
 ) -> Result<String, Box<dyn Error>> {
     let mut template = Tera::default();
     template.add_template_file(
@@ -71,45 +67,26 @@ fn render_problem(
     let mut context = Context::new();
     context.insert("datastructs", &Vec::<(Source, &str)>::from([]));
     context.insert("code", code);
-    context.insert("function", &function_details.0);
-    context.insert("return", &function_details.1);
-    context.insert("variables", &function_details.2);
+    context.insert("function", &metadata.name);
+    context.insert("return", &metadata.return_type);
+    context.insert(
+        "variables",
+        &metadata
+            .params
+            .iter()
+            .map(|v| (&v.name, &v.typ))
+            .collect::<Vec<_>>(),
+    );
     context.insert(
         "examples",
         &examples
             .split_whitespace()
             .collect::<Vec<&str>>()
-            .chunks_exact(function_details.2.len())
+            .chunks_exact(metadata.params.len())
             .collect::<Vec<_>>(),
     );
 
     Ok(template.render(template_name, &context)?)
-}
-
-/// Parses `code` to get [`FunctionDetails`] of the challenge function.
-fn parse_code(code: &Option<String>, lang: &Lang) -> Result<FunctionDetails, Box<dyn Error>> {
-    Ok(if let Some(c) = code {
-        let fcn_cap = Regex::new(lang.function_regex())?
-            .captures(c)
-            .expect("Error while parsing code through regex, no match found!");
-
-        let return_type = fcn_cap.name("return").map_or("", |m| m.as_str());
-        let function = fcn_cap.name("function").map_or("", |m| m.as_str());
-        let params = fcn_cap.name("params").map_or("", |m| m.as_str());
-        let variables = Regex::new(lang.variables_regex())?
-            .captures_iter(params)
-            .map(|cap| {
-                (
-                    String::from(cap.name("variable").map_or("", |m| m.as_str())),
-                    String::from(cap.name("type").map_or("", |m| m.as_str())),
-                )
-            })
-            .collect();
-
-        (String::from(function), String::from(return_type), variables)
-    } else {
-        (String::new(), String::new(), vec![])
-    })
 }
 
 /// Fetches and renders the question data into a solution file, of which its [`PathBuf`] is returned if successful.
@@ -126,8 +103,7 @@ pub fn fetch(
     let sol_file_already_exists = sol_file.exists();
 
     if overwrite || !sol_file_already_exists {
-        let (desc, code, examples) = source.query(id, lang)?;
-        let function_details = parse_code(&code, lang)?;
+        let (desc, code, metadata, examples) = source.query(id, lang)?;
 
         if overwrite || !desc_file.exists() {
             print!("Rendering {}... ", desc_file.display().to_string().orange().bold());
@@ -141,7 +117,7 @@ pub fn fetch(
         io::stdout().flush()?;
 
         let template_name = format!("{}.j2", &file);
-        fs::write(&sol_file, render_problem(config, &template_name, &code, &function_details, &examples)?)?;
+        fs::write(&sol_file, render_problem(config, &template_name, &code, &metadata, &examples)?)?;
         println!("{}!", "OK".green().bold());
 
         if !sol_file_already_exists && lang == &Lang::Rust {
