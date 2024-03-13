@@ -17,7 +17,7 @@ use super::config::Config;
 use super::lang::Lang;
 use super::source::Source;
 
-pub use request::{Empty, GraphQLResponse, Method, Request, Response};
+pub use request::{GraphQLResponse, Method, Request, Response};
 
 /// An alias to a tuple detailing function information.
 type FunctionDetails = (String, String, Vec<(String, String)>);

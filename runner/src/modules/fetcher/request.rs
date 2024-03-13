@@ -9,17 +9,8 @@ use reqwest::StatusCode;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer};
 
-/// An empty struct with a [`Display`] trait.
-pub struct Empty;
-
-impl std::fmt::Display for Empty {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
-    }
-}
-
 /// HTTP request methods.
-#[allow(clippy::upper_case_acronyms)]
+#[allow(clippy::upper_case_acronyms, dead_code)]
 pub enum Method {
     GET,
     POST,

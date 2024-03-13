@@ -6,44 +6,53 @@ use reqwest::blocking::Client;
 use serde::Deserialize;
 use strum::Display;
 
-use crate::modules::fetcher::{Empty, GraphQLResponse, Method, Request, Response};
+use crate::modules::fetcher::{GraphQLResponse, Method, Request, Response};
 use crate::modules::lang::Lang;
 
-const QUESTION_DATA_QUERY: &str = r"
-query getQuestionDetail($titleSlug: String!) {
-  obj: question(titleSlug: $titleSlug) {
-    questionFrontendId
-    content
-    codeSnippets {
-      lang
-      langSlug
-      code
+const QUESTION_LIST_QUERY: &str = r#"
+query questionList($skip: Int) {
+  obj: questionList(
+    categorySlug: ""
+    limit: 1
+    skip: $skip
+    filters: {}
+  ) {
+    questions: data {
+      questionFrontendId
+      content
+      codeSnippets {
+        lang
+        langSlug
+        code
+      }
+      exampleTestcases
     }
-    exampleTestcases
   }
 }
-";
-const EMPTY_QUERY: &str = "";
+"#;
 
 #[derive(Display)]
 enum LeetcodeURL {
     #[strum(to_string = "https://leetcode.com/graphql")]
     GraphQL,
-    #[strum(to_string = "https://leetcode.com/api/problems/all")]
-    APIProblemsAll,
 }
 
-type QuestionDataQuery = Request<String, GraphQLResponse<QuestionData>>;
+type QuestionDataQuery = Request<String, GraphQLResponse<QuestionList>>;
 
 impl QuestionDataQuery {
-    fn new(title: &str) -> Self {
+    fn new(id: usize) -> Self {
         Request::from(
             LeetcodeURL::GraphQL.to_string(),
             Method::POST,
-            QUESTION_DATA_QUERY,
-            format!("{{\"titleSlug\": \"{title}\"}}"),
+            QUESTION_LIST_QUERY,
+            format!("{{\"skip\": \"{id}\"}}"),
         )
     }
+}
+
+#[derive(Debug, Deserialize)]
+struct QuestionList {
+    questions: Vec<QuestionData>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -61,64 +70,29 @@ struct CodeSnippetJson {
     code: String,
 }
 
-type ProblemSetQuery = Request<Empty, ProblemSet>;
-
-impl ProblemSetQuery {
-    fn new() -> Self {
-        Request::from(LeetcodeURL::APIProblemsAll.to_string(), Method::GET, EMPTY_QUERY, Empty)
-    }
-}
-
-#[derive(Debug, Deserialize)]
-struct ProblemSet {
-    stat_status_pairs: Vec<StatStatusPair>,
-}
-
-#[derive(Debug, Deserialize)]
-struct StatStatusPair {
-    stat: Stat,
-}
-
-#[derive(Debug, Deserialize)]
-#[allow(non_snake_case)]
-struct Stat {
-    frontend_question_id: usize,
-    question__title_slug: String,
-}
-
 pub fn query(id: &str, lang: &Lang) -> Result<(String, Option<String>, String), Box<dyn Error>> {
     let usize_id = id.parse::<usize>()?;
 
     let client = Client::new();
 
-    print!("Querying problems... ");
-    io::stdout().flush()?;
-
-    let problems = ProblemSetQuery::new().response(&client)?;
-    let title = problems
-        .stat_status_pairs
-        .iter()
-        .find(|s| s.stat.frontend_question_id == usize_id)
-        .unwrap()
-        .stat
-        .question__title_slug
-        .as_str();
-    println!("{}!", "OK".green().bold());
-
     print!("Querying question data for problem {}... ", id.cyan().bold());
     io::stdout().flush()?;
 
-    let question = QuestionDataQuery::new(title).response(&client)?.data;
+    let question = &QuestionDataQuery::new(usize_id.saturating_sub(1))
+        .response(&client)?
+        .data
+        .questions[0];
     assert!(format!("{:0>4}", question.question_frontend_id) == id);
     println!("{}!", "OK".green().bold());
 
     Ok((
-        question.content,
+        question.content.clone(),
         question
             .code_snippets
-            .into_iter()
+            .as_slice()
+            .iter()
             .find(|q| q.lang == lang.get_name())
             .map(|q| q.code.clone()),
-        question.example_testcases,
+        question.example_testcases.clone(),
     ))
 }
