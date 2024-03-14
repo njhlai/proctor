@@ -3,6 +3,8 @@ mod lsp;
 use std::error::Error;
 use std::process::Command;
 
+use regex::{Captures, Regex};
+use serde::Deserialize;
 use strum::{Display, EnumCount, EnumIter, EnumProperty, EnumString};
 
 use super::config::Config;
@@ -16,13 +18,16 @@ const RUSTC_COLOR_ARGS: &[&str] = &["--color", "always"];
 const RUSTC_COMPILE_FLAGS: &[&str] = &["--color", "always", "--edition", "2021", "--test"];
 
 /// An enum listing available code languages.
-#[derive(Clone, Debug, Display, EnumCount, EnumIter, EnumProperty, EnumString, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Display, EnumCount, EnumIter, EnumProperty, EnumString, PartialEq)]
 pub enum Lang {
     #[strum(serialize = "cpp", props(name = "C++"))]
+    #[serde(rename = "cpp")]
     Cpp,
     #[strum(serialize = "py", props(name = "Python3"))]
+    #[serde(rename = "py")]
     Python,
     #[strum(serialize = "rs", props(name = "Rust"))]
+    #[serde(rename = "rs")]
     Rust,
 }
 
@@ -106,6 +111,35 @@ impl Lang {
             Lang::Python => lsp::Pyright::from(config).generate_setup(config),
             Lang::Rust => lsp::RustAnalyzer::from(config).generate_setup(config),
         }
+    }
+
+    /// Parses `typ` into the language-appropriate data type name.
+    pub fn parse(&self, typ: &str) -> Result<String, Box<dyn Error>> {
+        Ok(Regex::new(r"(?<type>\w+)(?<arr>\[\])?")?
+            .replace(typ, |caps: &Captures| {
+                let transformed = caps.name("type").map_or("", |m| match m.as_str() {
+                    "integer" => match self {
+                        Lang::Cpp | Lang::Python => "int",
+                        Lang::Rust => "i32",
+                    },
+                    "double" => match self {
+                        Lang::Cpp => "double",
+                        Lang::Python => "float",
+                        Lang::Rust => "f64",
+                    },
+                    _ => todo!(),
+                });
+
+                caps.name("arr").map_or_else(
+                    || String::from(transformed),
+                    |_| match self {
+                        Lang::Cpp => format!("vector<{transformed}>"),
+                        Lang::Python => format!("List[{transformed}]"),
+                        Lang::Rust => format!("Vec<{transformed}>"),
+                    },
+                )
+            })
+            .to_string())
     }
 }
 

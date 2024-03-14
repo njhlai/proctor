@@ -1,15 +1,19 @@
-use serde::{Deserialize, Deserializer};
-use serde_json::Result as jsonResult;
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::modules::lang::Lang;
 
-/// A structure defining the metadata associated to a question.
-#[derive(Debug, Deserialize)]
-pub struct MetaData {
-    pub name: String,
-    pub params: Vec<Variable>,
-    #[serde(rename = "return", deserialize_with = "flatten_return")]
-    pub return_type: String,
+/// A structure defining a data type.
+#[derive(Debug, Serialize)]
+pub struct Typ {
+    pub initial: String,
+    pub transformed: String,
+}
+
+impl<'de> Deserialize<'de> for Typ {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let initial = String::deserialize(deserializer)?;
+        Ok(Typ { initial: initial.clone(), transformed: initial })
+    }
 }
 
 /// A structure defining the name and type for a variable.
@@ -17,23 +21,59 @@ pub struct MetaData {
 pub struct Variable {
     pub name: String,
     #[serde(rename = "type")]
-    pub typ: String,
+    pub typ: Typ,
 }
 
-impl MetaData {
-    /// Returns the [`MetaData`] from the JSON string `metadata_json` if possible.
-    pub fn from(metadata_json: &str, _: &Lang) -> jsonResult<Self> {
-        serde_json::from_str(metadata_json)
-    }
+/// A structure defining the metadata associated to a question.
+#[derive(Debug)]
+pub struct MetaData {
+    pub name: String,
+    pub params: Vec<Variable>,
+    pub return_type: Typ,
 }
 
-/// Returns the underlying object from unwrapping a nested deserialised structure.
-fn flatten_return<'de, D: Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
-    #[derive(Deserialize)]
-    struct Wrapper {
-        #[serde(rename = "type")]
-        typ: String,
-    }
+impl<'de> Deserialize<'de> for MetaData {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        #[derive(Deserialize)]
+        struct PreMetaData {
+            lang: Lang,
+            name: String,
+            params: Vec<PreVariable>,
+            #[serde(rename = "return")]
+            return_type: Return,
+        }
 
-    Ok(Wrapper::deserialize(deserializer)?.typ)
+        #[derive(Deserialize)]
+        struct PreVariable {
+            name: String,
+            #[serde(rename = "type")]
+            typ: String,
+        }
+
+        #[derive(Deserialize)]
+        struct Return {
+            #[serde(rename = "type")]
+            typ: String,
+        }
+
+        let pre_metadata = PreMetaData::deserialize(deserializer)?;
+        Ok(MetaData {
+            name: pre_metadata.name,
+            params: pre_metadata
+                .params
+                .iter()
+                .map(|v| Variable {
+                    name: v.name.clone(),
+                    typ: Typ { initial: v.typ.clone(), transformed: pre_metadata.lang.parse(&v.typ).unwrap() },
+                })
+                .collect(),
+            return_type: Typ {
+                initial: pre_metadata.return_type.typ.clone(),
+                transformed: pre_metadata
+                    .lang
+                    .parse(&pre_metadata.return_type.typ)
+                    .unwrap(),
+            },
+        })
+    }
 }

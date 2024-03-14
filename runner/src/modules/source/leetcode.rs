@@ -9,7 +9,6 @@ use strum::Display;
 use crate::modules::fetcher::{GraphQLResponse, Method, Request, Response};
 use crate::modules::lang::Lang;
 
-use super::metadata::MetaData;
 use super::QuestionDetails;
 
 const QUESTION_LIST_QUERY: &str = r#"
@@ -88,6 +87,9 @@ pub fn query(id: &str, lang: &Lang) -> Result<QuestionDetails, Box<dyn Error>> {
     assert!(format!("{:0>4}", question.question_frontend_id) == id);
     println!("{}!", "OK".green().bold());
 
+    let mut metadata_json = question.meta_data.clone();
+    metadata_json.insert_str(3, format!("  \"lang\": \"{lang}\",\r\n").as_str());
+
     Ok((
         question.content.clone(),
         question
@@ -96,7 +98,7 @@ pub fn query(id: &str, lang: &Lang) -> Result<QuestionDetails, Box<dyn Error>> {
             .iter()
             .find(|q| q.lang == lang.get_name())
             .map(|q| q.code.clone()),
-        MetaData::from(&question.meta_data, lang)?,
+        serde_json::from_str(&metadata_json)?,
         question.example_testcases.clone(),
     ))
 }
