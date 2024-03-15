@@ -63,6 +63,19 @@ fn render_problem(
             Some(c) => c.to_lowercase().collect::<String>() + it.as_str(),
         })?)
     });
+    template.register_filter("process", |value: &Value, args: &HashMap<String, Value>| {
+        let example = tera::try_get_value!("process", "value", String, value);
+        let lang = match args.get("lang") {
+            Some(v) => tera::try_get_value!("process", "lang", Lang, v),
+            None => return Err(tera::Error::msg("The `process` filter has to have a `lang` argument")),
+        };
+        let typ = match args.get("type") {
+            Some(v) => tera::try_get_value!("process", "type", String, v),
+            None => return Err(tera::Error::msg("The `process` filter has to have a `type` argument")),
+        };
+
+        Ok(tera::to_value(lang.process(&typ, &example))?)
+    });
 
     let mut context = Context::new();
     context.insert("datastructs", &Vec::<(Source, &str)>::from([]));

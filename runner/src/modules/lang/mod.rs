@@ -119,11 +119,12 @@ impl Lang {
             .replace(typ, |caps: &Captures| {
                 let transformed = caps.name("type").map_or("", |m| match m.as_str() {
                     "integer" => match self {
-                        Lang::Cpp | Lang::Python => "int",
+                        Lang::Cpp => "int ",
+                        Lang::Python => "int",
                         Lang::Rust => "i32",
                     },
                     "double" => match self {
-                        Lang::Cpp => "double",
+                        Lang::Cpp => "double ",
                         Lang::Python => "float",
                         Lang::Rust => "f64",
                     },
@@ -133,13 +134,36 @@ impl Lang {
                 caps.name("arr").map_or_else(
                     || String::from(transformed),
                     |_| match self {
-                        Lang::Cpp => format!("vector<{transformed}>"),
+                        Lang::Cpp => format!("vector<{}> ", transformed.trim_end()),
                         Lang::Python => format!("List[{transformed}]"),
                         Lang::Rust => format!("Vec<{transformed}>"),
                     },
                 )
             })
             .to_string())
+    }
+
+    /// Processes `examples` into the language-appropriate form.
+    pub fn process(&self, typ: &str, example: &str) -> String {
+        match self {
+            Lang::Cpp => {
+                let cleaned = example.trim_matches(|c| c == '[' || c == ']');
+
+                if typ.ends_with("[]") {
+                    format!("({{ {cleaned} }})")
+                } else {
+                    format!("({cleaned})")
+                }
+            }
+            Lang::Python => String::from(example),
+            Lang::Rust => {
+                if typ.ends_with("[]") {
+                    format!("vec!{example}")
+                } else {
+                    String::from(example)
+                }
+            }
+        }
     }
 }
 
