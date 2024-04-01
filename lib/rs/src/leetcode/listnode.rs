@@ -5,6 +5,8 @@ pub struct ListNode {
 }
 
 impl ListNode {
+    #[rustfmt::skip]
+    #[must_use]
     #[inline]
     pub fn new(val: i32) -> Self {
         ListNode {
@@ -13,8 +15,8 @@ impl ListNode {
         }
     }
 
-    #[must_use]
     /// Constructs a `ListNode` from `input`.
+    #[must_use]
     pub fn from(input: Vec<i32>) -> Option<Box<Self>> {
         let mut res = Some(Box::new(ListNode::new(0)));
         let mut cur = res.as_mut();
