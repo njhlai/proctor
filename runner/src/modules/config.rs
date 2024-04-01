@@ -10,7 +10,7 @@ use serde_json::Value;
 
 use super::colorize::MoreColorize;
 
-/// `runner` config JSON serializer.
+/// `runner` config.
 #[derive(Debug, Deserialize)]
 pub struct Config {
     #[serde(rename = "project_dir")]
@@ -21,22 +21,9 @@ pub struct Config {
 }
 
 impl Config {
-    /// Reads from `config_path` and returns a [`Config`].
+    /// Reads from `config_path` if possible and returns an appropriate [`Config`].
     pub fn read(config_path: &Option<String>) -> Result<(Self, Option<PathBuf>), Box<dyn Error>> {
-        let mut maybe_config_files = vec![];
-
-        if let Some(config) = config_path.as_ref() {
-            maybe_config_files.push(PathBuf::from(config));
-        }
-        maybe_config_files.push(PathBuf::from("./config.json"));
-        if let Some(config_local_dir) = dirs::config_local_dir() {
-            let default_config_file = config_local_dir.join("proctor/config.json");
-            maybe_config_files.push(default_config_file);
-        }
-
-        for (i, pathbuf) in maybe_config_files.iter().enumerate() {
-            if i > 0 { println!("{}!", "FAILED".red().bold()); }
-
+        for pathbuf in &get_possible_config_pathbuf(config_path) {
             print!("Reading config from {}... ", pathbuf.display().to_string().orange().bold());
             io::stdout().flush()?;
 
@@ -47,12 +34,12 @@ impl Config {
                     return Ok((config, Some(pathbuf.clone())));
                 }
             }
+
+            println!("{}!", "FAILED".red().bold());
         }
 
-        println!("{}!", "FAILED".red().bold());
         println!("{}: Can't read configuration, proceeding with default configuration", "WARNING".yellow().bold());
-
-        Ok((Config::new(String::from("."), String::from("./data")), None))
+        Ok((Config::new(String::new(), String::from("."), String::from("./data")), None))
     }
 
     /// Returns a [`Config`] with the specified configurations.
@@ -60,8 +47,26 @@ impl Config {
         Config { project_dir_str, sol_dir_str, lang: HashMap::default() }
     }
 
-    /// Returns the `PathBuf` to the testing bin file for language (with extension `ext`).
+    /// Returns the [`PathBuf`] to the testing bin file for language (with extension `ext`).
     pub fn binfile(&self, ext: &str) -> PathBuf {
         PathBuf::from(&self.project_dir_str).join(format!("bin/test_{ext}"))
     }
+}
+
+/// Returns an ordered list of config files' [`PathBuf`] to source from.
+fn get_possible_config_pathbuf(config_path: &Option<String>) -> Vec<PathBuf> {
+    let mut config_files = vec![];
+
+    if let Some(config) = config_path.as_ref() {
+        config_files.push(PathBuf::from(config));
+    }
+
+    config_files.push(PathBuf::from("./config.json"));
+
+    if let Some(config_local_dir) = dirs::config_local_dir() {
+        let default_config_file = config_local_dir.join("proctor/config.json");
+        config_files.push(default_config_file);
+    }
+
+    config_files
 }
