@@ -37,6 +37,15 @@ impl Lang {
         self.get_str("name").unwrap()
     }
 
+    /// Get all comment symbols of the language.
+    pub fn comments(&self) -> Vec<&'static str> {
+        match self {
+            Lang::Cpp => vec!["//", "/**", " *"],
+            Lang::Python => vec!["#"],
+            Lang::Rust => vec!["//"],
+        }
+    }
+
     /// Returns the [`Command`] that executes the solution-testing `binfile`.
     pub fn tester(&self, config: &Config) -> Command {
         let binfile = config.binfile(&self.to_string());

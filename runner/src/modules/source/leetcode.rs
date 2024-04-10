@@ -97,7 +97,12 @@ pub fn query(id: &str, lang: &Lang) -> Result<QuestionDetails, Box<dyn Error>> {
             .as_slice()
             .iter()
             .find(|q| q.lang == lang.get_name())
-            .map(|q| q.code.clone()),
+            .map(|q| {
+                q.code
+                    .lines()
+                    .filter(|l| !lang.comments().iter().any(|c| l.starts_with(c)))
+                    .fold(String::new(), |acc, l| if acc.is_empty() { String::from(l) } else { acc + "\n" + l })
+            }),
         serde_json::from_str(&metadata_json)?,
         question.example_testcases.clone(),
     ))
