@@ -8,7 +8,7 @@ use strum::{Display, EnumIter, EnumString};
 
 use super::lang::Lang;
 
-pub use metadata::MetaData;
+pub use metadata::{Form, MetaData, Typ};
 
 /// Sources of coding challenge questions.
 #[derive(Clone, Debug, Default, Display, EnumIter, EnumString, PartialEq, Serialize)]

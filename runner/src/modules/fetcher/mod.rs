@@ -14,7 +14,7 @@ use tera::{Context, Tera, Value};
 use super::colorize::MoreColorize;
 use super::config::Config;
 use super::lang::Lang;
-use super::source::{MetaData, Source};
+use super::source::{MetaData, Source, Typ};
 
 pub use request::{GraphQLResponse, Method, Request, Response};
 
@@ -70,7 +70,7 @@ fn render_problem(
             None => return Err(tera::Error::msg("The `process` filter has to have a `lang` argument")),
         };
         let typ = match args.get("type") {
-            Some(v) => tera::try_get_value!("process", "type", String, v),
+            Some(v) => tera::try_get_value!("process", "type", Typ, v),
             None => return Err(tera::Error::msg("The `process` filter has to have a `type` argument")),
         };
 

@@ -3,12 +3,13 @@ mod lsp;
 use std::error::Error;
 use std::process::Command;
 
-use regex::{Captures, Regex};
+use regex::{Error as RegexError, Regex};
 use serde::Deserialize;
 use strum::{Display, EnumCount, EnumIter, EnumProperty, EnumString};
 
 use super::config::Config;
 use super::dev_env::{Setup, Setups};
+use super::source::{Form, Typ};
 
 use self::lsp::Lsp;
 
@@ -123,55 +124,76 @@ impl Lang {
     }
 
     /// Parses `typ` into the language-appropriate data type name.
-    pub fn parse(&self, typ: &str) -> Result<String, Box<dyn Error>> {
-        Ok(Regex::new(r"(?<type>\w+)(?<arr>\[\])?")?
-            .replace(typ, |caps: &Captures| {
-                let transformed = caps.name("type").map_or("", |m| match m.as_str() {
-                    "integer" => match self {
-                        Lang::Cpp => "int ",
-                        Lang::Python => "int",
-                        Lang::Rust => "i32",
-                    },
-                    "double" => match self {
-                        Lang::Cpp => "double ",
-                        Lang::Python => "float",
-                        Lang::Rust => "f64",
-                    },
+    pub fn parse(&self, typ: &str) -> Result<Typ, Box<dyn Error>> {
+        if let Some(caps) = Regex::new(r"(?<type>\w+)(?<arr>\[\])?")?.captures(typ) {
+            let (mut transformed, mut form) = caps
+                .name("type")
+                .map_or((String::new(), Form::Unit), |m| match m.as_str() {
+                    "integer" => (
+                        String::from(match self {
+                            Lang::Cpp => "int ",
+                            Lang::Python => "int",
+                            Lang::Rust => "i32",
+                        }),
+                        Form::Unit,
+                    ),
+                    "double" => (
+                        String::from(match self {
+                            Lang::Cpp => "double ",
+                            Lang::Python => "float",
+                            Lang::Rust => "f64",
+                        }),
+                        Form::Unit,
+                    ),
                     _ => todo!(),
                 });
 
-                caps.name("arr").map_or_else(
-                    || String::from(transformed),
-                    |_| match self {
+            if caps.name("arr").is_some() {
+                (transformed, form) = (
+                    match self {
                         Lang::Cpp => format!("vector<{}> ", transformed.trim_end()),
                         Lang::Python => format!("List[{transformed}]"),
                         Lang::Rust => format!("Vec<{transformed}>"),
                     },
-                )
-            })
-            .to_string())
+                    Form::Array,
+                );
+            }
+
+            Ok(Typ { initial: String::from(typ), transformed, form })
+        } else {
+            Err(Box::new(RegexError::Syntax(String::from("Failed to parse type string"))))
+        }
     }
 
     /// Processes `examples` into the language-appropriate form.
-    pub fn process(&self, typ: &str, example: &str) -> String {
+    pub fn process(&self, typ: &Typ, example: &str) -> String {
         match self {
             Lang::Cpp => {
                 let cleaned = example.trim_matches(|c| c == '[' || c == ']');
+                let mut it = typ.initial.chars();
+                let datastruct = match it.next() {
+                    None => String::new(),
+                    Some(c) => c.to_lowercase().collect::<String>() + it.as_str(),
+                };
 
-                if typ.ends_with("[]") {
-                    format!("({{ {cleaned} }})")
-                } else {
-                    format!("({cleaned})")
+                match typ.form {
+                    Form::Unit => format!("({cleaned})"),
+                    Form::Array => format!("({{ {cleaned} }})"),
+                    Form::Pointer => format!(" = {datastruct}From(vector<int>({{ {cleaned} }}))"),
                 }
             }
-            Lang::Python => String::from(example),
-            Lang::Rust => {
-                if typ.ends_with("[]") {
-                    format!("vec!{example}")
+            Lang::Python => {
+                if typ.form == Form::Pointer {
+                    format!("{}From({example})", typ.initial)
                 } else {
                     String::from(example)
                 }
             }
+            Lang::Rust => match typ.form {
+                Form::Unit => String::from(example),
+                Form::Array => format!("vec!{example}"),
+                Form::Pointer => format!(" {}::from(vec!{example})", typ.initial),
+            },
         }
     }
 }

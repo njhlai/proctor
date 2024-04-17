@@ -17,26 +17,19 @@ mod tests {
 
     #[test]
     fn case_{{ loop.index }}() {
-        let {% if variables | length > 1 %}({% endif -%}
         {% for variable in variables -%}
+        let {{ variable.0 }} = {{ example | nth(n=loop.index0) | process(lang="rs",type=variable.1) }};
+        {% endfor %}
+        let expected_output = ; // fill in expected result here
+        let output = Solution::{{ function }}({% for variable in variables -%}
         {{ variable.0 }}{% if not loop.last %}, {% endif -%}
-        {% endfor -%}
-        {% if variables | length > 1 %}){% endif %} = {% if variables | length > 1 %}({% endif -%}
-        {% for e in example -%}
-        {{ e }}{% if not loop.last %}, {% endif -%}
-        {% endfor -%}
-        {% if variables | length > 1 %}){% endif %};
+        {% endfor %});
+
         let info_msg = format!("Input: {% for variable in variables -%}
         {{ variable.0 }} = {:?}{% if not loop.last %}, {% endif -%}
         {% endfor %}", {% for variable in variables -%}
         {{ variable.0 }}{% if not loop.last %}, {% endif -%}
         {% endfor %});
-        let expected_output = ; // fill in expected result here
-
-        let output = Solution::{{ function }}({% for variable in variables -%}
-        {{ variable.0 }}{% if not loop.last %}, {% endif -%}
-        {% endfor %});
-
         assert_eq!(output, expected_output, "{}", info_msg);
     }
     {%- endfor %}

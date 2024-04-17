@@ -3,17 +3,18 @@ use serde::{Deserialize, Deserializer, Serialize};
 use crate::modules::lang::Lang;
 
 /// A structure defining a data type.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Typ {
     pub initial: String,
     pub transformed: String,
+    pub form: Form,
 }
 
-impl<'de> Deserialize<'de> for Typ {
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let initial = String::deserialize(deserializer)?;
-        Ok(Typ { initial: initial.clone(), transformed: initial })
-    }
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+pub enum Form {
+    Unit,
+    Array,
+    Pointer,
 }
 
 /// A structure defining the name and type for a variable.
@@ -62,18 +63,12 @@ impl<'de> Deserialize<'de> for MetaData {
             params: pre_metadata
                 .params
                 .iter()
-                .map(|v| Variable {
-                    name: v.name.clone(),
-                    typ: Typ { initial: v.typ.clone(), transformed: pre_metadata.lang.parse(&v.typ).unwrap() },
-                })
+                .map(|v| Variable { name: v.name.clone(), typ: pre_metadata.lang.parse(&v.typ).unwrap() })
                 .collect(),
-            return_type: Typ {
-                initial: pre_metadata.return_type.typ.clone(),
-                transformed: pre_metadata
-                    .lang
-                    .parse(&pre_metadata.return_type.typ)
-                    .unwrap(),
-            },
+            return_type: pre_metadata
+                .lang
+                .parse(&pre_metadata.return_type.typ)
+                .unwrap(),
         })
     }
 }

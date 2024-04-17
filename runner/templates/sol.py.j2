@@ -42,12 +42,9 @@ class Test(TestCase):
 
     def test_case_{{ loop.index }}(self) -> None:
         {% for variable in variables -%}
-        {{ variable.0 }}{% if not loop.last %}, {% endif -%}
-        {% endfor %} = {% for e in example -%}
-        {{ e }}{% if not loop.last %}, {% endif -%}
+        {{ variable.0 }} = {{ example | nth(n=loop.index0) | process(lang="py",type=variable.1) | camel }}
         {% endfor %}
         expectedOutput = # fill in expected result here
-
         output = self.solution.{{ function }}({% for variable in variables -%}
         {{ variable.0 }}{% if not loop.last %}, {% endif -%}
         {% endfor %})
