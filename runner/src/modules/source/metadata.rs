@@ -31,6 +31,7 @@ pub struct MetaData {
     pub name: String,
     pub params: Vec<Variable>,
     pub return_type: Typ,
+    pub cleanup: bool,
 }
 
 impl<'de> Deserialize<'de> for MetaData {
@@ -58,17 +59,26 @@ impl<'de> Deserialize<'de> for MetaData {
         }
 
         let pre_metadata = PreMetaData::deserialize(deserializer)?;
+        let return_type = pre_metadata
+            .lang
+            .parse(&pre_metadata.return_type.typ)
+            .unwrap();
+        let mut cleanup = return_type.form == Form::Pointer;
+
         Ok(MetaData {
             name: pre_metadata.name,
             params: pre_metadata
                 .params
                 .iter()
-                .map(|v| Variable { name: v.name.clone(), typ: pre_metadata.lang.parse(&v.typ).unwrap() })
+                .map(|v| {
+                    let typ = pre_metadata.lang.parse(&v.typ).unwrap();
+                    cleanup |= typ.form == Form::Pointer;
+
+                    Variable { name: v.name.clone(), typ }
+                })
                 .collect(),
-            return_type: pre_metadata
-                .lang
-                .parse(&pre_metadata.return_type.typ)
-                .unwrap(),
+            return_type,
+            cleanup,
         })
     }
 }

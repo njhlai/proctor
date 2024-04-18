@@ -43,13 +43,15 @@ class Test(TestCase):
     def test_case_{{ loop.index }}(self) -> None:
         {% for variable in variables -%}
         {{ variable.0 }} = {{ example | nth(n=loop.index0) | process(lang="py",type=variable.1) | camel }}
-        {% endfor %}
+        {% endfor -%}
         expectedOutput = # fill in expected result here
-        output = self.solution.{{ function }}({% for variable in variables -%}
+
+        {% if return.transformed != "void" -%}
+        output = {% endif %}self.solution.{{ function }}({% for variable in variables -%}
         {{ variable.0 }}{% if not loop.last %}, {% endif -%}
         {% endfor %})
 
-        self.assertEqual(output, expectedOutput, f"\nInput: {% for variable in variables -%}
+        self.assertEqual(expectedOutput, output, f"\nInput: {% for variable in variables -%}
         {{ variable.0 }} = {% raw %}{{% endraw %}{{ variable.0 }}{% raw %}}{% endraw %}{% if not loop.last %}, {% endif -%}
         {% endfor %}")
     {%- endfor %}

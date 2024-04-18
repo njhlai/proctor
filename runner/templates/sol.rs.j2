@@ -19,9 +19,11 @@ mod tests {
     fn case_{{ loop.index }}() {
         {% for variable in variables -%}
         let {{ variable.0 }} = {{ example | nth(n=loop.index0) | process(lang="rs",type=variable.1) }};
-        {% endfor %}
+        {% endfor -%}
         let expected_output = ; // fill in expected result here
-        let output = Solution::{{ function }}({% for variable in variables -%}
+
+        {% if return.transformed != "void" -%}
+        let output = {% endif %}Solution::{{ function }}({% for variable in variables -%}
         {{ variable.0 }}{% if not loop.last %}, {% endif -%}
         {% endfor %});
 
@@ -30,7 +32,7 @@ mod tests {
         {% endfor %}", {% for variable in variables -%}
         {{ variable.0 }}{% if not loop.last %}, {% endif -%}
         {% endfor %});
-        assert_eq!(output, expected_output, "{}", info_msg);
+        assert_eq!(expected_output, output, "{}", info_msg);
     }
     {%- endfor %}
     {%- endif %}

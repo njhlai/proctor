@@ -20,19 +20,23 @@ using namespace std;
 TEST_CASE("Case {{ loop.index }}") {
     {% for variable in variables -%}
     {{ variable.1.transformed }} {% if variable.1.form == "Pointer" %}*{% endif %}{{ variable.0 }}{{ example | nth(n=loop.index0) | process(lang="cpp",type=variable.1) }};
-    {% endfor %}
-    Solution sol;
+    {% endfor -%}
     {{ return.transformed }} {% if return.form == "Pointer" %}*{% endif %}expectedOutput = ; // fill in expected result here
-    {{ return.transformed }} {% if return.form == "Pointer" %}*{% endif %}output = sol.{{ function }}({% for variable in variables -%}
+
+    Solution sol;
+    {% if return.transformed != "void" -%}
+    {{ return.transformed }} {% if return.form == "Pointer" %}*{% endif %}output = {% endif %}sol.{{ function }}({% for variable in variables -%}
     {{ variable.0 }}{% if not loop.last %}, {% endif -%}
     {% endfor %});
 
     INFO("Input: {% for variable in variables -%}
     {{ variable.0 }} = " << {% if variable.1.form == "Pointer" %}*{% endif %}{{ variable.0 }}{% if not loop.last %} << ", {% endif -%}
     {% endfor %});
-    CHECK({% if return.form == "Pointer" %}*{% endif %}output == {% if return.form == "Pointer" %}*{% endif %}expectedOutput);
+    CHECK({% if return.form == "Pointer" %}*{% endif %}expectedOutput == {% if return.form == "Pointer" %}*{% endif %}output);{% if cleanup %}
 
-    // Destroy pointers here.
+    {% endif %}{% for variable in variables %}
+    {%- if variable.1.form == "Pointer" %}destroy({{ variable.0 }}); {% endif %}{% endfor %}{% if return.form == "Pointer" %}
+    destroy(expectedOutput); destroy(output);{% endif %}
 }
 {%- endfor %}
 {%- endif %}

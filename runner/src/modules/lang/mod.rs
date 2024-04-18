@@ -131,15 +131,14 @@ impl Lang {
                 .map_or((String::new(), Form::Unit), |m| match m.as_str() {
                     "integer" => (
                         String::from(match self {
-                            Lang::Cpp => "int ",
-                            Lang::Python => "int",
+                            Lang::Cpp | Lang::Python => "int",
                             Lang::Rust => "i32",
                         }),
                         Form::Unit,
                     ),
                     "double" => (
                         String::from(match self {
-                            Lang::Cpp => "double ",
+                            Lang::Cpp => "double",
                             Lang::Python => "float",
                             Lang::Rust => "f64",
                         }),

@@ -98,6 +98,7 @@ fn render_problem(
             .chunks_exact(metadata.params.len())
             .collect::<Vec<_>>(),
     );
+    context.insert("cleanup", &metadata.cleanup);
 
     Ok(template.render(template_name, &context)?)
 }
